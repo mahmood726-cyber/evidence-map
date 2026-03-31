@@ -1,0 +1,2022 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EvidenceMap — Rapid Evidence Gap Map Generator</title>
+<style>
+:root {
+  --bg: #f5f7fa;
+  --surface: #ffffff;
+  --surface2: #f0f4f8;
+  --border: #d1d9e0;
+  --text: #1a202c;
+  --text2: #4a5568;
+  --text3: #718096;
+  --accent: #3182ce;
+  --accent-hover: #2c5282;
+  --grade-high: #276749;
+  --grade-mod: #2b6cb0;
+  --grade-low: #c05621;
+  --grade-vlow: #c53030;
+  --grade-na: #718096;
+  --shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06);
+  --radius: 8px;
+  --tab-active: #3182ce;
+}
+.dark {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --surface2: #21262d;
+  --border: #30363d;
+  --text: #e6edf3;
+  --text2: #8b949e;
+  --text3: #6e7681;
+  --accent: #58a6ff;
+  --accent-hover: #79c0ff;
+  --grade-high: #56d364;
+  --grade-mod: #58a6ff;
+  --grade-low: #f0883e;
+  --grade-vlow: #ff7b72;
+  --grade-na: #8b949e;
+  --shadow: 0 1px 3px rgba(0,0,0,0.4);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.3);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.5;
+}
+header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow);
+}
+.header-left { display: flex; align-items: center; gap: 12px; }
+.app-logo {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, #3182ce, #56d364);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; color: #fff; font-weight: bold;
+}
+.app-title { font-size: 18px; font-weight: 700; color: var(--text); }
+.app-subtitle { font-size: 12px; color: var(--text3); }
+.header-right { display: flex; align-items: center; gap: 10px; }
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-weight: 500;
+  text-decoration: none;
+}
+.btn:hover { background: var(--surface2); border-color: var(--accent); }
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+.btn-sm { padding: 4px 10px; font-size: 12px; }
+.btn-danger { border-color: #e53e3e; color: #e53e3e; }
+.btn-danger:hover { background: #fff5f5; }
+.dark .btn-danger:hover { background: #2d1515; }
+.btn-success { background: #276749; border-color: #276749; color: #fff; }
+.btn-success:hover { background: #22543d; }
+.dark-toggle {
+  background: none; border: 1px solid var(--border);
+  border-radius: 20px; padding: 4px 10px; cursor: pointer;
+  color: var(--text2); font-size: 13px;
+  display: flex; align-items: center; gap: 6px;
+  transition: all 0.15s;
+}
+.dark-toggle:hover { border-color: var(--accent); color: var(--accent); }
+.tabs {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  padding: 0 20px;
+  gap: 0;
+}
+.tab-btn {
+  padding: 12px 20px;
+  border: none;
+  background: none;
+  color: var(--text2);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+  display: flex; align-items: center; gap: 8px;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { color: var(--tab-active); border-bottom-color: var(--tab-active); }
+.tab-icon { font-size: 16px; }
+.tab-panel { display: none; padding: 20px; max-width: 1400px; margin: 0 auto; }
+.tab-panel.active { display: block; }
+/* Data Entry Tab */
+.entry-grid {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 20px;
+}
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+.panel-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.list-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  margin-bottom: 4px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+}
+.list-item-drag { cursor: grab; color: var(--text3); font-size: 16px; }
+.list-item-name { flex: 1; font-size: 13px; font-weight: 500; }
+.list-item-edit {
+  border: none; background: none; cursor: pointer;
+  color: var(--text3); font-size: 12px; padding: 2px 6px;
+  border-radius: 4px;
+}
+.list-item-edit:hover { background: var(--surface); color: var(--accent); }
+.list-item-del {
+  border: none; background: none; cursor: pointer;
+  color: var(--text3); font-size: 14px; padding: 2px 6px;
+  border-radius: 4px;
+}
+.list-item-del:hover { background: #fff5f5; color: #e53e3e; }
+.dark .list-item-del:hover { background: #2d1515; }
+.add-row {
+  display: flex; gap: 6px; margin-top: 8px;
+}
+.add-row input {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+}
+.add-row input:focus { outline: none; border-color: var(--accent); }
+/* Cell Table */
+.cell-table-wrap { overflow-x: auto; }
+.cell-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 12px;
+}
+.cell-table th {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 8px 10px;
+  text-align: center;
+  font-weight: 600;
+  color: var(--text2);
+  white-space: nowrap;
+}
+.cell-table th.row-header { text-align: left; min-width: 140px; }
+.cell-table td {
+  border: 1px solid var(--border);
+  padding: 6px;
+  vertical-align: top;
+  min-width: 140px;
+}
+.cell-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cell-inner input, .cell-inner select {
+  width: 100%;
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 11px;
+}
+.cell-inner input:focus, .cell-inner select:focus { outline: none; border-color: var(--accent); }
+.cell-inner label { font-size: 10px; color: var(--text3); margin-bottom: 1px; }
+.grade-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #fff;
+}
+.grade-High { background: var(--grade-high); }
+.grade-Moderate { background: var(--grade-mod); }
+.grade-Low { background: var(--grade-low); }
+.grade-VeryLow { background: var(--grade-vlow); }
+.grade-NA { background: var(--grade-na); }
+/* CSV Import */
+.csv-area {
+  width: 100%;
+  height: 120px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font-family: monospace;
+  font-size: 12px;
+  resize: vertical;
+}
+.csv-area:focus { outline: none; border-color: var(--accent); }
+/* Map Tab */
+.map-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 6px 12px;
+}
+.filter-group label { font-size: 12px; color: var(--text2); }
+.filter-group input, .filter-group select {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface2);
+  color: var(--text);
+  padding: 3px 8px;
+  font-size: 12px;
+}
+.map-container {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+  position: relative;
+}
+#bubbleCanvas {
+  display: block;
+  cursor: crosshair;
+  border-radius: 6px;
+}
+.legend-panel {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  margin-top: 16px;
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+.legend-section { }
+.legend-title { font-size: 11px; font-weight: 700; color: var(--text2); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+.legend-items { display: flex; flex-direction: column; gap: 5px; }
+.legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text2); }
+.legend-dot {
+  width: 14px; height: 14px; border-radius: 50%;
+  flex-shrink: 0;
+}
+.legend-size-row { display: flex; align-items: flex-end; gap: 10px; }
+.legend-bubble {
+  background: var(--accent);
+  border-radius: 50%;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+.tooltip {
+  position: fixed;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 12px;
+  box-shadow: var(--shadow-md);
+  pointer-events: none;
+  z-index: 200;
+  display: none;
+  max-width: 240px;
+  line-height: 1.6;
+}
+.tooltip strong { color: var(--text); }
+.tooltip .tt-grade { font-weight: 600; }
+/* Gap Analysis Tab */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+.stat-num { font-size: 32px; font-weight: 700; color: var(--accent); }
+.stat-label { font-size: 12px; color: var(--text3); margin-top: 4px; }
+.stat-pct { font-size: 13px; color: var(--text2); font-weight: 500; }
+.charts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+.chart-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+.chart-panel canvas { display: block; }
+.gap-table {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  margin-bottom: 20px;
+}
+.gap-table-header {
+  background: var(--surface2);
+  padding: 12px 16px;
+  font-weight: 600;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.gap-table table { width: 100%; border-collapse: collapse; }
+.gap-table table th {
+  background: var(--surface2);
+  padding: 8px 14px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text2);
+  border-bottom: 1px solid var(--border);
+}
+.gap-table table td {
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.gap-table table tr:last-child td { border-bottom: none; }
+.gap-table table tr:hover td { background: var(--surface2); }
+.priority-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.priority-High { background: #fed7d7; color: #9b2c2c; }
+.priority-Medium { background: #feebc8; color: #7b341e; }
+.priority-Low { background: #e2e8f0; color: #4a5568; }
+.dark .priority-High { background: #2d1515; color: #fc8181; }
+.dark .priority-Medium { background: #2d1a0e; color: #f6ad55; }
+.dark .priority-Low { background: #1a202c; color: #a0aec0; }
+/* Heatmap */
+.heatmap-wrap { overflow-x: auto; margin-top: 16px; }
+#heatmapCanvas { display: block; }
+/* Export Tab */
+.export-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.export-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.export-card-icon { font-size: 32px; }
+.export-card-title { font-size: 15px; font-weight: 600; }
+.export-card-desc { font-size: 12px; color: var(--text3); flex: 1; }
+.summary-box {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  font-family: monospace;
+  font-size: 12px;
+  white-space: pre-wrap;
+  color: var(--text2);
+  max-height: 200px;
+  overflow-y: auto;
+}
+/* Utility */
+.row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.col { display: flex; flex-direction: column; gap: 8px; }
+.mt-12 { margin-top: 12px; }
+.mt-16 { margin-top: 16px; }
+.mt-20 { margin-top: 20px; }
+.badge {
+  display: inline-flex; align-items: center;
+  padding: 2px 8px; border-radius: 10px;
+  font-size: 11px; font-weight: 600;
+  background: var(--surface2); color: var(--text2);
+}
+.empty-state {
+  text-align: center; padding: 40px 20px;
+  color: var(--text3);
+}
+.empty-state .es-icon { font-size: 48px; margin-bottom: 12px; }
+.empty-state .es-title { font-size: 16px; font-weight: 600; color: var(--text2); margin-bottom: 6px; }
+.empty-state .es-desc { font-size: 13px; }
+select {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+}
+input[type="checkbox"] { accent-color: var(--accent); }
+.info-box {
+  background: #ebf8ff; border: 1px solid #bee3f8;
+  border-radius: 6px; padding: 10px 14px;
+  font-size: 12px; color: #2c5282;
+  display: flex; gap: 8px; align-items: flex-start;
+}
+.dark .info-box { background: #0d2a47; border-color: #1a4a7a; color: #90cdf4; }
+@media (max-width: 768px) {
+  .entry-grid { grid-template-columns: 1fr; }
+  .charts-row { grid-template-columns: 1fr; }
+  .export-grid { grid-template-columns: 1fr; }
+  .tabs { overflow-x: auto; }
+  .tab-btn { white-space: nowrap; padding: 12px 14px; }
+}
+.section-divider {
+  border: none; border-top: 1px solid var(--border);
+  margin: 16px 0;
+}
+.zoom-controls {
+  display: flex; align-items: center; gap: 6px;
+}
+.zoom-controls button {
+  width: 28px; height: 28px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+}
+.zoom-controls button:hover { border-color: var(--accent); color: var(--accent); }
+.zoom-val { font-size: 12px; color: var(--text2); min-width: 36px; text-align: center; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="app-logo">EM</div>
+    <div>
+      <div class="app-title">EvidenceMap</div>
+      <div class="app-subtitle">Rapid Evidence Gap Map Generator</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <button class="btn btn-sm" onclick="loadExample(0)">&#9654; Cardio Example</button>
+    <button class="btn btn-sm" onclick="loadExample(1)">&#9654; Mental Health</button>
+    <button class="btn btn-sm" onclick="loadExample(2)">&#9654; COVID-19</button>
+    <button class="dark-toggle" onclick="toggleDark()" id="darkToggle">&#9790; Dark</button>
+  </div>
+</header>
+
+<nav class="tabs" role="tablist">
+  <button class="tab-btn active" onclick="switchTab('entry')" id="tab-entry" role="tab">
+    <span class="tab-icon">&#9998;</span> Data Entry
+  </button>
+  <button class="tab-btn" onclick="switchTab('map')" id="tab-map" role="tab">
+    <span class="tab-icon">&#11096;</span> Evidence Map
+  </button>
+  <button class="tab-btn" onclick="switchTab('gaps')" id="tab-gaps" role="tab">
+    <span class="tab-icon">&#9782;</span> Gap Analysis
+  </button>
+  <button class="tab-btn" onclick="switchTab('export')" id="tab-export" role="tab">
+    <span class="tab-icon">&#8681;</span> Export
+  </button>
+</nav>
+
+<!-- ======================== TAB 1: DATA ENTRY ======================== -->
+<div class="tab-panel active" id="panel-entry">
+  <div class="entry-grid">
+    <!-- Left column: Lists -->
+    <div class="col">
+      <!-- Interventions -->
+      <div class="panel">
+        <div class="panel-title">&#127755; Interventions (Rows)</div>
+        <div id="interventionList"></div>
+        <div class="add-row">
+          <input type="text" id="newIntervention" placeholder="Add intervention..." onkeydown="if(event.key==='Enter')addIntervention()">
+          <button class="btn btn-sm btn-primary" onclick="addIntervention()">+ Add</button>
+        </div>
+      </div>
+      <!-- Outcomes -->
+      <div class="panel">
+        <div class="panel-title">&#127919; Outcomes (Columns)</div>
+        <div id="outcomeList"></div>
+        <div class="add-row">
+          <input type="text" id="newOutcome" placeholder="Add outcome..." onkeydown="if(event.key==='Enter')addOutcome()">
+          <button class="btn btn-sm btn-primary" onclick="addOutcome()">+ Add</button>
+        </div>
+      </div>
+      <!-- Quick CSV Import -->
+      <div class="panel">
+        <div class="panel-title">&#128203; Quick CSV Import</div>
+        <div class="info-box">
+          <span>&#8505;</span>
+          <span>Format: <strong>intervention, outcome, k, certainty, direction, effect</strong><br>
+          Certainty: High/Moderate/Low/Very Low<br>
+          Direction: Beneficial/Harmful/No effect/Mixed</span>
+        </div>
+        <textarea class="csv-area mt-12" id="csvInput" placeholder="Drug A, Mortality, 5, High, Beneficial, RR 0.72 (0.65-0.80)&#10;Drug A, MI, 3, Moderate, Beneficial, RR 0.81 (0.70-0.94)&#10;Drug B, Mortality, 1, Low, Harmful, RR 1.15 (0.95-1.40)"></textarea>
+        <div class="row mt-12">
+          <button class="btn btn-sm btn-primary" onclick="importCSV()">&#8679; Import CSV</button>
+          <button class="btn btn-sm" onclick="clearCSV()">&#10006; Clear</button>
+        </div>
+        <div id="csvStatus" class="mt-12" style="font-size:12px;color:var(--text3)"></div>
+      </div>
+    </div>
+
+    <!-- Right column: Cell table -->
+    <div class="panel">
+      <div class="panel-title" style="justify-content: space-between">
+        <span>&#9783; Cell Data Entry</span>
+        <div class="row">
+          <button class="btn btn-sm" onclick="clearAllCells()">&#10006; Clear All Cells</button>
+        </div>
+      </div>
+      <div class="cell-table-wrap" id="cellTableWrap">
+        <div class="empty-state">
+          <div class="es-icon">&#9783;</div>
+          <div class="es-title">No interventions or outcomes yet</div>
+          <div class="es-desc">Add interventions and outcomes on the left, or load an example above.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======================== TAB 2: EVIDENCE MAP ======================== -->
+<div class="tab-panel" id="panel-map">
+  <div class="map-controls">
+    <div class="filter-group">
+      <label>Min studies:</label>
+      <input type="number" id="filterMinK" value="0" min="0" max="100" style="width:60px" onchange="renderBubbleMap()">
+    </div>
+    <div class="filter-group">
+      <label>Show:</label>
+      <label><input type="checkbox" id="showHigh" checked onchange="renderBubbleMap()"> High</label>
+      <label><input type="checkbox" id="showMod" checked onchange="renderBubbleMap()"> Moderate</label>
+      <label><input type="checkbox" id="showLow" checked onchange="renderBubbleMap()"> Low</label>
+      <label><input type="checkbox" id="showVLow" checked onchange="renderBubbleMap()"> Very Low</label>
+      <label><input type="checkbox" id="showNA" checked onchange="renderBubbleMap()"> Not assessed</label>
+    </div>
+    <div class="zoom-controls">
+      <button onclick="adjustZoom(-0.1)">&#8722;</button>
+      <span class="zoom-val" id="zoomVal">100%</span>
+      <button onclick="adjustZoom(0.1)">+</button>
+      <button onclick="resetZoom()" style="font-size:11px;width:auto;padding:0 6px">Reset</button>
+    </div>
+    <button class="btn btn-sm" onclick="renderBubbleMap()">&#8635; Refresh</button>
+  </div>
+  <div class="map-container" id="mapContainer">
+    <canvas id="bubbleCanvas"></canvas>
+    <div class="empty-state" id="mapEmpty" style="display:none">
+      <div class="es-icon">&#11096;</div>
+      <div class="es-title">No data to display</div>
+      <div class="es-desc">Add interventions, outcomes, and cell data in the Data Entry tab.</div>
+    </div>
+  </div>
+  <div class="legend-panel">
+    <div class="legend-section">
+      <div class="legend-title">GRADE Certainty</div>
+      <div class="legend-items">
+        <div class="legend-item"><div class="legend-dot" style="background:#276749"></div> High certainty</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#2b6cb0"></div> Moderate certainty</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#c05621"></div> Low certainty</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#c53030"></div> Very low certainty</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#718096"></div> Not assessed</div>
+      </div>
+    </div>
+    <div class="legend-section">
+      <div class="legend-title">Direction</div>
+      <div class="legend-items">
+        <div class="legend-item"><span style="font-size:16px">&#8679;</span> Beneficial</div>
+        <div class="legend-item"><span style="font-size:16px">&#8681;</span> Harmful</div>
+        <div class="legend-item"><span style="font-size:16px">&#8213;</span> No effect</div>
+        <div class="legend-item"><span style="font-size:16px">&#126;</span> Mixed</div>
+        <div class="legend-item"><span style="font-size:16px">&#9633;</span> Gap (no studies)</div>
+      </div>
+    </div>
+    <div class="legend-section">
+      <div class="legend-title">Bubble Size (k)</div>
+      <div class="legend-size-row">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
+          <div class="legend-bubble" style="width:14px;height:14px;background:var(--accent);opacity:0.6;border-radius:50%"></div>
+          <span style="font-size:10px;color:var(--text3)">k=1</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
+          <div class="legend-bubble" style="width:22px;height:22px;background:var(--accent);opacity:0.6;border-radius:50%"></div>
+          <span style="font-size:10px;color:var(--text3)">k=5</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
+          <div class="legend-bubble" style="width:34px;height:34px;background:var(--accent);opacity:0.6;border-radius:50%"></div>
+          <span style="font-size:10px;color:var(--text3)">k=15</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
+          <div class="legend-bubble" style="width:48px;height:48px;background:var(--accent);opacity:0.6;border-radius:50%"></div>
+          <span style="font-size:10px;color:var(--text3)">k=30+</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======================== TAB 3: GAP ANALYSIS ======================== -->
+<div class="tab-panel" id="panel-gaps">
+  <div class="stats-grid" id="statsGrid">
+    <div class="stat-card">
+      <div class="stat-num" id="statTotal">—</div>
+      <div class="stat-label">Total Cells</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="statFilled">—</div>
+      <div class="stat-label">Filled Cells</div>
+      <div class="stat-pct" id="statFilledPct"></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="statGaps">—</div>
+      <div class="stat-label">Evidence Gaps</div>
+      <div class="stat-pct" id="statGapsPct"></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="statStudies">—</div>
+      <div class="stat-label">Total Studies (k)</div>
+    </div>
+  </div>
+
+  <div class="charts-row">
+    <div class="chart-panel">
+      <div class="panel-title">Evidence by GRADE Certainty</div>
+      <canvas id="certBarCanvas" width="400" height="220"></canvas>
+    </div>
+    <div class="chart-panel">
+      <div class="panel-title">Evidence by Direction</div>
+      <canvas id="dirDonutCanvas" width="400" height="220"></canvas>
+    </div>
+  </div>
+
+  <div class="gap-table">
+    <div class="gap-table-header">
+      &#9782; Evidence Gaps (Research Needed)
+      <span id="gapCountBadge" class="badge">0</span>
+    </div>
+    <div id="gapTableBody"></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">&#9632; Evidence Heatmap (Studies per Cell)</div>
+    <div class="heatmap-wrap">
+      <canvas id="heatmapCanvas"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ======================== TAB 4: EXPORT ======================== -->
+<div class="tab-panel" id="panel-export">
+  <div class="export-grid">
+    <div class="export-card">
+      <div class="export-card-icon">&#128247;</div>
+      <div class="export-card-title">Evidence Map (PNG)</div>
+      <div class="export-card-desc">Download the bubble chart as a high-resolution PNG image, suitable for publications and reports.</div>
+      <button class="btn btn-primary" onclick="exportBubblePNG()">&#8681; Download Bubble Map PNG</button>
+    </div>
+    <div class="export-card">
+      <div class="export-card-icon">&#128200;</div>
+      <div class="export-card-title">Heatmap (PNG)</div>
+      <div class="export-card-desc">Download the study count heatmap as a PNG image for quick visual overview.</div>
+      <button class="btn btn-primary" onclick="exportHeatmapPNG()">&#8681; Download Heatmap PNG</button>
+    </div>
+    <div class="export-card">
+      <div class="export-card-icon">&#128196;</div>
+      <div class="export-card-title">Gap Report (HTML)</div>
+      <div class="export-card-desc">Download a complete, self-contained HTML gap analysis report with all statistics and gap tables.</div>
+      <button class="btn btn-primary" onclick="exportGapReport()">&#8681; Download Gap Report</button>
+    </div>
+    <div class="export-card">
+      <div class="export-card-icon">&#128202;</div>
+      <div class="export-card-title">Data (CSV)</div>
+      <div class="export-card-desc">Download all cell data as CSV for further analysis in R, Python, or Excel.</div>
+      <button class="btn btn-primary" onclick="exportCSV()">&#8681; Download CSV</button>
+    </div>
+    <div class="export-card">
+      <div class="export-card-icon">&#128203;</div>
+      <div class="export-card-title">Summary Statistics</div>
+      <div class="export-card-desc">Copy a plain-text summary of the evidence map statistics to your clipboard.</div>
+      <button class="btn btn-success" onclick="copySummary()" id="copyBtn">&#128203; Copy Summary Text</button>
+    </div>
+    <div class="export-card">
+      <div class="export-card-icon">&#128438;</div>
+      <div class="export-card-title">Print View</div>
+      <div class="export-card-desc">Open a print-friendly view of the evidence map and gap analysis for physical printing.</div>
+      <button class="btn" onclick="printView()">&#128438; Print / PDF</button>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-title">&#128203; Summary Preview</div>
+    <pre class="summary-box" id="summaryBox">Generate summary by switching to the Gap Analysis tab first.</pre>
+  </div>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+// ======================== STATE ========================
+var appState = {
+  interventions: [],
+  outcomes: [],
+  cells: {}, // key: "intv_idx|outc_idx", value: {k, effect, certainty, direction}
+  darkMode: false,
+  zoom: 1.0
+};
+
+// GRADE color map
+var GRADE_COLORS = {
+  'High': '#276749',
+  'Moderate': '#2b6cb0',
+  'Low': '#c05621',
+  'Very Low': '#c53030',
+  'Not assessed': '#718096'
+};
+var GRADE_COLORS_DARK = {
+  'High': '#56d364',
+  'Moderate': '#58a6ff',
+  'Low': '#f0883e',
+  'Very Low': '#ff7b72',
+  'Not assessed': '#8b949e'
+};
+var DIRECTION_SYMBOLS = {
+  'Beneficial': '↑',
+  'Harmful': '↓',
+  'No effect': '–',
+  'Mixed': '~'
+};
+var CERTAINTY_ORDER = ['High','Moderate','Low','Very Low','Not assessed'];
+
+// ======================== STORAGE ========================
+function saveState() {
+  try {
+    localStorage.setItem('evidencemap_state_v1', JSON.stringify(appState));
+  } catch(e) {}
+}
+function loadState() {
+  try {
+    var s = localStorage.getItem('evidencemap_state_v1');
+    if (s) {
+      var parsed = JSON.parse(s);
+      appState.interventions = parsed.interventions || [];
+      appState.outcomes = parsed.outcomes || [];
+      appState.cells = parsed.cells || {};
+      appState.darkMode = parsed.darkMode || false;
+      appState.zoom = parsed.zoom || 1.0;
+    }
+  } catch(e) {}
+}
+
+// ======================== ESCAPE / SAFETY ========================
+function escHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+
+function cellKey(iIdx, oIdx) {
+  return iIdx + '|' + oIdx;
+}
+
+function getCellData(iIdx, oIdx) {
+  return appState.cells[cellKey(iIdx, oIdx)] || { k: 0, effect: '', certainty: 'Not assessed', direction: 'No effect' };
+}
+
+// ======================== DARK MODE ========================
+function toggleDark() {
+  appState.darkMode = !appState.darkMode;
+  applyDark();
+  saveState();
+}
+function applyDark() {
+  if (appState.darkMode) {
+    document.body.classList.add('dark');
+    document.getElementById('darkToggle').textContent = '☀ Light';
+  } else {
+    document.body.classList.remove('dark');
+    document.getElementById('darkToggle').textContent = '☾ Dark';
+  }
+}
+
+// ======================== TAB SWITCHING ========================
+function switchTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+  document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+  document.getElementById('panel-' + name).classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'map') { setTimeout(renderBubbleMap, 50); }
+  if (name === 'gaps') { setTimeout(renderGapAnalysis, 50); }
+  if (name === 'export') { renderExportSummary(); }
+}
+
+// ======================== INTERVENTIONS ========================
+function addIntervention() {
+  var inp = document.getElementById('newIntervention');
+  var val = inp.value.trim();
+  if (!val) return;
+  appState.interventions.push(val);
+  inp.value = '';
+  renderInterventionList();
+  renderCellTable();
+  saveState();
+}
+function removeIntervention(idx) {
+  appState.interventions.splice(idx, 1);
+  // Rebuild cell keys
+  var newCells = {};
+  Object.keys(appState.cells).forEach(function(k) {
+    var parts = k.split('|');
+    var iIdx = parseInt(parts[0]);
+    var oIdx = parseInt(parts[1]);
+    if (iIdx < idx) {
+      newCells[cellKey(iIdx, oIdx)] = appState.cells[k];
+    } else if (iIdx > idx) {
+      newCells[cellKey(iIdx - 1, oIdx)] = appState.cells[k];
+    }
+  });
+  appState.cells = newCells;
+  renderInterventionList();
+  renderCellTable();
+  saveState();
+}
+function editIntervention(idx) {
+  var cur = appState.interventions[idx];
+  var val = prompt('Edit intervention name:', cur);
+  if (val !== null && val.trim()) {
+    appState.interventions[idx] = val.trim();
+    renderInterventionList();
+    renderCellTable();
+    saveState();
+  }
+}
+function moveIntervention(idx, dir) {
+  var newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= appState.interventions.length) return;
+  // Swap
+  var tmp = appState.interventions[idx];
+  appState.interventions[idx] = appState.interventions[newIdx];
+  appState.interventions[newIdx] = tmp;
+  // Swap cell keys
+  var newCells = {};
+  Object.keys(appState.cells).forEach(function(k) {
+    var parts = k.split('|');
+    var iIdx = parseInt(parts[0]);
+    var oIdx = parseInt(parts[1]);
+    if (iIdx === idx) {
+      newCells[cellKey(newIdx, oIdx)] = appState.cells[k];
+    } else if (iIdx === newIdx) {
+      newCells[cellKey(idx, oIdx)] = appState.cells[k];
+    } else {
+      newCells[k] = appState.cells[k];
+    }
+  });
+  appState.cells = newCells;
+  renderInterventionList();
+  renderCellTable();
+  saveState();
+}
+function renderInterventionList() {
+  var el = document.getElementById('interventionList');
+  if (!appState.interventions.length) {
+    el.innerHTML = '<div style="color:var(--text3);font-size:12px;text-align:center;padding:8px">No interventions added yet</div>';
+    return;
+  }
+  el.innerHTML = appState.interventions.map(function(name, idx) {
+    return '<div class="list-item">' +
+      '<span class="list-item-drag">&#8597;</span>' +
+      '<span class="list-item-name">' + escHtml(name) + '</span>' +
+      '<button class="list-item-edit" onclick="editIntervention(' + idx + ')" title="Edit">&#9998;</button>' +
+      '<button class="list-item-del" onclick="removeIntervention(' + idx + ')" title="Remove">&#10006;</button>' +
+    '</div>';
+  }).join('');
+}
+
+// ======================== OUTCOMES ========================
+function addOutcome() {
+  var inp = document.getElementById('newOutcome');
+  var val = inp.value.trim();
+  if (!val) return;
+  appState.outcomes.push(val);
+  inp.value = '';
+  renderOutcomeList();
+  renderCellTable();
+  saveState();
+}
+function removeOutcome(idx) {
+  appState.outcomes.splice(idx, 1);
+  var newCells = {};
+  Object.keys(appState.cells).forEach(function(k) {
+    var parts = k.split('|');
+    var iIdx = parseInt(parts[0]);
+    var oIdx = parseInt(parts[1]);
+    if (oIdx < idx) {
+      newCells[cellKey(iIdx, oIdx)] = appState.cells[k];
+    } else if (oIdx > idx) {
+      newCells[cellKey(iIdx, oIdx - 1)] = appState.cells[k];
+    }
+  });
+  appState.cells = newCells;
+  renderOutcomeList();
+  renderCellTable();
+  saveState();
+}
+function editOutcome(idx) {
+  var cur = appState.outcomes[idx];
+  var val = prompt('Edit outcome name:', cur);
+  if (val !== null && val.trim()) {
+    appState.outcomes[idx] = val.trim();
+    renderOutcomeList();
+    renderCellTable();
+    saveState();
+  }
+}
+function moveOutcome(idx, dir) {
+  var newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= appState.outcomes.length) return;
+  var tmp = appState.outcomes[idx];
+  appState.outcomes[idx] = appState.outcomes[newIdx];
+  appState.outcomes[newIdx] = tmp;
+  var newCells = {};
+  Object.keys(appState.cells).forEach(function(k) {
+    var parts = k.split('|');
+    var iIdx = parseInt(parts[0]);
+    var oIdx = parseInt(parts[1]);
+    if (oIdx === idx) {
+      newCells[cellKey(iIdx, newIdx)] = appState.cells[k];
+    } else if (oIdx === newIdx) {
+      newCells[cellKey(iIdx, idx)] = appState.cells[k];
+    } else {
+      newCells[k] = appState.cells[k];
+    }
+  });
+  appState.cells = newCells;
+  renderOutcomeList();
+  renderCellTable();
+  saveState();
+}
+function renderOutcomeList() {
+  var el = document.getElementById('outcomeList');
+  if (!appState.outcomes.length) {
+    el.innerHTML = '<div style="color:var(--text3);font-size:12px;text-align:center;padding:8px">No outcomes added yet</div>';
+    return;
+  }
+  el.innerHTML = appState.outcomes.map(function(name, idx) {
+    return '<div class="list-item">' +
+      '<span class="list-item-drag">&#8597;</span>' +
+      '<span class="list-item-name">' + escHtml(name) + '</span>' +
+      '<button class="list-item-edit" onclick="editOutcome(' + idx + ')" title="Edit">&#9998;</button>' +
+      '<button class="list-item-del" onclick="removeOutcome(' + idx + ')" title="Remove">&#10006;</button>' +
+    '</div>';
+  }).join('');
+}
+
+// ======================== CELL TABLE ========================
+function updateCell(iIdx, oIdx, field, value) {
+  var k = cellKey(iIdx, oIdx);
+  if (!appState.cells[k]) {
+    appState.cells[k] = { k: 0, effect: '', certainty: 'Not assessed', direction: 'No effect' };
+  }
+  if (field === 'k') {
+    var n = parseInt(value);
+    appState.cells[k].k = isNaN(n) ? 0 : Math.max(0, n);
+  } else {
+    appState.cells[k][field] = value;
+  }
+  // If k=0, effectively a gap
+  saveState();
+}
+
+function renderCellTable() {
+  var wrap = document.getElementById('cellTableWrap');
+  var ni = appState.interventions.length;
+  var no = appState.outcomes.length;
+  if (ni === 0 || no === 0) {
+    wrap.innerHTML = '<div class="empty-state"><div class="es-icon">&#9783;</div>' +
+      '<div class="es-title">No ' + (ni === 0 ? 'interventions' : 'outcomes') + ' yet</div>' +
+      '<div class="es-desc">Add them on the left panel.</div></div>';
+    return;
+  }
+  var certaintyOpts = ['Not assessed','High','Moderate','Low','Very Low'];
+  var directionOpts = ['No effect','Beneficial','Harmful','Mixed'];
+  var html = '<table class="cell-table"><thead><tr>' +
+    '<th class="row-header">Intervention \\ Outcome</th>';
+  appState.outcomes.forEach(function(o) {
+    html += '<th>' + escHtml(o) + '</th>';
+  });
+  html += '</tr></thead><tbody>';
+  appState.interventions.forEach(function(intv, iIdx) {
+    html += '<tr><td style="font-weight:600;background:var(--surface2);white-space:nowrap">' + escHtml(intv) + '</td>';
+    appState.outcomes.forEach(function(outc, oIdx) {
+      var cell = getCellData(iIdx, oIdx);
+      var kVal = cell.k || 0;
+      var k = cellKey(iIdx, oIdx);
+      html += '<td><div class="cell-inner">' +
+        '<label>k (studies)</label>' +
+        '<input type="number" min="0" value="' + escHtml(kVal) + '" ' +
+          'onchange="updateCell(' + iIdx + ',' + oIdx + ',\'k\',this.value)">' +
+        '<label>Effect (optional)</label>' +
+        '<input type="text" placeholder="RR 0.80 (0.70-0.92)" value="' + escHtml(cell.effect) + '" ' +
+          'onchange="updateCell(' + iIdx + ',' + oIdx + ',\'effect\',this.value)">' +
+        '<label>GRADE certainty</label>' +
+        '<select onchange="updateCell(' + iIdx + ',' + oIdx + ',\'certainty\',this.value)">';
+      certaintyOpts.forEach(function(opt) {
+        html += '<option value="' + escHtml(opt) + '"' + (cell.certainty === opt ? ' selected' : '') + '>' + escHtml(opt) + '</option>';
+      });
+      html += '</select>' +
+        '<label>Direction</label>' +
+        '<select onchange="updateCell(' + iIdx + ',' + oIdx + ',\'direction\',this.value)">';
+      directionOpts.forEach(function(opt) {
+        html += '<option value="' + escHtml(opt) + '"' + (cell.direction === opt ? ' selected' : '') + '>' + escHtml(opt) + '</option>';
+      });
+      html += '</select></div></td>';
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+}
+
+function clearAllCells() {
+  if (!confirm('Clear all cell data? Interventions and outcomes will remain.')) return;
+  appState.cells = {};
+  renderCellTable();
+  saveState();
+}
+
+// ======================== CSV IMPORT ========================
+function importCSV() {
+  var text = document.getElementById('csvInput').value.trim();
+  var status = document.getElementById('csvStatus');
+  if (!text) { status.textContent = 'No CSV data found.'; return; }
+  var lines = text.split('\n');
+  var imported = 0, skipped = 0;
+  lines.forEach(function(line) {
+    line = line.trim();
+    if (!line || line.startsWith('#')) return;
+    var parts = line.split(',').map(function(s) { return s.trim(); });
+    if (parts.length < 4) { skipped++; return; }
+    var intv = parts[0];
+    var outc = parts[1];
+    var k = parseInt(parts[2]);
+    var certainty = parts[3];
+    var direction = parts[4] || 'No effect';
+    var effect = parts.slice(5).join(',').trim();
+    // Normalize certainty
+    var certMap = {'high':'High','moderate':'Moderate','low':'Low',
+      'very low':'Very Low','verylow':'Very Low','not assessed':'Not assessed','na':'Not assessed'};
+    certainty = certMap[certainty.toLowerCase()] || certainty;
+    // Normalize direction
+    var dirMap = {'beneficial':'Beneficial','harmful':'Harmful',
+      'no effect':'No effect','none':'No effect','mixed':'Mixed','neutral':'No effect'};
+    direction = dirMap[direction.toLowerCase()] || direction;
+    // Find or add intervention
+    var iIdx = appState.interventions.indexOf(intv);
+    if (iIdx < 0) { appState.interventions.push(intv); iIdx = appState.interventions.length - 1; }
+    // Find or add outcome
+    var oIdx = appState.outcomes.indexOf(outc);
+    if (oIdx < 0) { appState.outcomes.push(outc); oIdx = appState.outcomes.length - 1; }
+    // Set cell
+    var ck = cellKey(iIdx, oIdx);
+    appState.cells[ck] = { k: isNaN(k) ? 0 : k, effect: effect, certainty: certainty, direction: direction };
+    imported++;
+  });
+  renderInterventionList();
+  renderOutcomeList();
+  renderCellTable();
+  saveState();
+  status.textContent = 'Imported ' + imported + ' rows' + (skipped ? ', skipped ' + skipped + ' invalid.' : '.');
+  status.style.color = 'var(--grade-high)';
+}
+
+function clearCSV() {
+  document.getElementById('csvInput').value = '';
+  document.getElementById('csvStatus').textContent = '';
+}
+
+// ======================== BUBBLE MAP ========================
+var bubbleHitAreas = [];
+var currentZoom = 1.0;
+
+function adjustZoom(delta) {
+  appState.zoom = Math.max(0.5, Math.min(3.0, appState.zoom + delta));
+  document.getElementById('zoomVal').textContent = Math.round(appState.zoom * 100) + '%';
+  renderBubbleMap();
+  saveState();
+}
+function resetZoom() {
+  appState.zoom = 1.0;
+  document.getElementById('zoomVal').textContent = '100%';
+  renderBubbleMap();
+  saveState();
+}
+
+function gradeColor(certainty) {
+  var colors = appState.darkMode ? GRADE_COLORS_DARK : GRADE_COLORS;
+  return colors[certainty] || colors['Not assessed'];
+}
+
+function bubbleRadius(k) {
+  if (!k || k <= 0) return 0;
+  return Math.max(8, Math.min(40, 8 + Math.sqrt(k) * 5));
+}
+
+function renderBubbleMap() {
+  var canvas = document.getElementById('bubbleCanvas');
+  var ni = appState.interventions.length;
+  var no = appState.outcomes.length;
+  var emptyEl = document.getElementById('mapEmpty');
+
+  if (ni === 0 || no === 0) {
+    canvas.style.display = 'none';
+    emptyEl.style.display = '';
+    return;
+  }
+  canvas.style.display = '';
+  emptyEl.style.display = 'none';
+
+  var minK = parseInt(document.getElementById('filterMinK').value) || 0;
+  var showHigh = document.getElementById('showHigh').checked;
+  var showMod = document.getElementById('showMod').checked;
+  var showLow = document.getElementById('showLow').checked;
+  var showVLow = document.getElementById('showVLow').checked;
+  var showNA = document.getElementById('showNA').checked;
+
+  function certVisible(cert) {
+    if (cert === 'High') return showHigh;
+    if (cert === 'Moderate') return showMod;
+    if (cert === 'Low') return showLow;
+    if (cert === 'Very Low') return showVLow;
+    return showNA;
+  }
+
+  var z = appState.zoom || 1.0;
+  var padLeft = Math.round(160 * z);
+  var padTop = Math.round(80 * z);
+  var padRight = Math.round(40 * z);
+  var padBottom = Math.round(40 * z);
+  var cellW = Math.round(110 * z);
+  var cellH = Math.round(90 * z);
+  var W = padLeft + no * cellW + padRight;
+  var H = padTop + ni * cellH + padBottom;
+
+  canvas.width = W;
+  canvas.height = H;
+  var ctx = canvas.getContext('2d');
+
+  // Background
+  var isDark = appState.darkMode;
+  ctx.fillStyle = isDark ? '#161b22' : '#ffffff';
+  ctx.fillRect(0, 0, W, H);
+
+  // Grid lines
+  ctx.strokeStyle = isDark ? '#30363d' : '#e2e8f0';
+  ctx.lineWidth = 1;
+  for (var i = 0; i <= ni; i++) {
+    var y = padTop + i * cellH;
+    ctx.beginPath(); ctx.moveTo(padLeft, y); ctx.lineTo(W - padRight, y); ctx.stroke();
+  }
+  for (var j = 0; j <= no; j++) {
+    var x = padLeft + j * cellW;
+    ctx.beginPath(); ctx.moveTo(x, padTop); ctx.lineTo(x, H - padBottom); ctx.stroke();
+  }
+
+  // Outcome labels (top)
+  ctx.fillStyle = isDark ? '#8b949e' : '#4a5568';
+  ctx.font = 'bold ' + Math.round(11 * z) + 'px -apple-system, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
+  appState.outcomes.forEach(function(outc, oIdx) {
+    var cx = padLeft + oIdx * cellW + cellW / 2;
+    var labelY = padTop - Math.round(8 * z);
+    // Word wrap
+    var words = outc.split(' ');
+    var line = '';
+    var lines = [];
+    words.forEach(function(w) {
+      var test = line ? line + ' ' + w : w;
+      if (ctx.measureText(test).width > cellW - 10 * z && line) {
+        lines.push(line); line = w;
+      } else { line = test; }
+    });
+    if (line) lines.push(line);
+    lines.reverse();
+    lines.forEach(function(l, li) {
+      ctx.fillText(l, cx, labelY - li * Math.round(14 * z));
+    });
+  });
+
+  // Intervention labels (left)
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'middle';
+  ctx.font = 'bold ' + Math.round(11 * z) + 'px -apple-system, sans-serif';
+  appState.interventions.forEach(function(intv, iIdx) {
+    var cy = padTop + iIdx * cellH + cellH / 2;
+    var maxW = padLeft - Math.round(16 * z);
+    // Truncate if needed
+    var label = intv;
+    while (ctx.measureText(label).width > maxW && label.length > 6) {
+      label = label.slice(0, -4) + '...';
+    }
+    ctx.fillStyle = isDark ? '#8b949e' : '#4a5568';
+    ctx.fillText(label, padLeft - Math.round(10 * z), cy);
+  });
+
+  // Cells (gaps + bubbles)
+  bubbleHitAreas = [];
+  appState.interventions.forEach(function(intv, iIdx) {
+    appState.outcomes.forEach(function(outc, oIdx) {
+      var cell = getCellData(iIdx, oIdx);
+      var cx = padLeft + oIdx * cellW + cellW / 2;
+      var cy = padTop + iIdx * cellH + cellH / 2;
+      var hasData = cell.k > 0;
+      var visible = hasData && certVisible(cell.certainty) && cell.k >= minK;
+
+      if (!hasData) {
+        // Draw gap indicator
+        ctx.save();
+        ctx.setLineDash([4, 3]);
+        ctx.strokeStyle = isDark ? '#30363d' : '#cbd5e0';
+        ctx.lineWidth = 1.5;
+        var gapSize = Math.round(20 * z);
+        ctx.strokeRect(cx - gapSize, cy - gapSize, gapSize * 2, gapSize * 2);
+        ctx.setLineDash([]);
+        ctx.restore();
+        // Gap text
+        ctx.fillStyle = isDark ? '#484f58' : '#cbd5e0';
+        ctx.font = Math.round(18 * z) + 'px sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('○', cx, cy);
+      } else if (!visible) {
+        // Filtered out — show faded
+        ctx.save();
+        ctx.globalAlpha = 0.2;
+        var r = bubbleRadius(cell.k) * z;
+        ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.fillStyle = gradeColor(cell.certainty);
+        ctx.fill();
+        ctx.restore();
+      } else {
+        // Draw bubble
+        var r = bubbleRadius(cell.k) * z;
+        ctx.save();
+        ctx.globalAlpha = 0.85;
+        // Glow
+        ctx.shadowColor = gradeColor(cell.certainty);
+        ctx.shadowBlur = 6 * z;
+        ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.fillStyle = gradeColor(cell.certainty);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        // Highlight
+        ctx.globalAlpha = 0.3;
+        ctx.beginPath(); ctx.arc(cx - r * 0.25, cy - r * 0.25, r * 0.45, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        // Stroke
+        ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.stroke();
+        // Direction arrow
+        var sym = DIRECTION_SYMBOLS[cell.direction] || '–';
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold ' + Math.round(Math.max(10, r * 0.8)) + 'px sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(sym, cx, cy);
+        ctx.restore();
+        // Hit area
+        bubbleHitAreas.push({ iIdx: iIdx, oIdx: oIdx, cx: cx, cy: cy, r: r, cell: cell });
+      }
+    });
+  });
+
+  // Update zoom display
+  document.getElementById('zoomVal').textContent = Math.round(z * 100) + '%';
+}
+
+// Tooltip on canvas hover
+document.getElementById('bubbleCanvas').addEventListener('mousemove', function(e) {
+  var rect = this.getBoundingClientRect();
+  var mx = e.clientX - rect.left;
+  var my = e.clientY - rect.top;
+  var tooltip = document.getElementById('tooltip');
+  var hit = null;
+  for (var i = 0; i < bubbleHitAreas.length; i++) {
+    var b = bubbleHitAreas[i];
+    var dx = mx - b.cx, dy = my - b.cy;
+    if (dx * dx + dy * dy <= (b.r + 4) * (b.r + 4)) { hit = b; break; }
+  }
+  if (hit) {
+    var cell = hit.cell;
+    var intv = appState.interventions[hit.iIdx];
+    var outc = appState.outcomes[hit.oIdx];
+    var certColor = gradeColor(cell.certainty);
+    tooltip.innerHTML =
+      '<strong>' + escHtml(intv) + '</strong> &#215; <strong>' + escHtml(outc) + '</strong><br>' +
+      'Studies (k): <strong>' + cell.k + '</strong><br>' +
+      'Certainty: <span style="color:' + certColor + ';font-weight:600">' + escHtml(cell.certainty) + '</span><br>' +
+      'Direction: <strong>' + escHtml(cell.direction) + '</strong>' +
+      (cell.effect ? '<br>Effect: ' + escHtml(cell.effect) : '');
+    tooltip.style.display = 'block';
+    tooltip.style.left = (e.clientX + 14) + 'px';
+    tooltip.style.top = (e.clientY - 10) + 'px';
+    this.style.cursor = 'pointer';
+  } else {
+    tooltip.style.display = 'none';
+    this.style.cursor = 'crosshair';
+  }
+});
+document.getElementById('bubbleCanvas').addEventListener('mouseleave', function() {
+  document.getElementById('tooltip').style.display = 'none';
+});
+
+// ======================== GAP ANALYSIS ========================
+function renderGapAnalysis() {
+  var ni = appState.interventions.length;
+  var no = appState.outcomes.length;
+  var total = ni * no;
+  var filled = 0, gaps = 0, totalStudies = 0;
+  var certCounts = { 'High': 0, 'Moderate': 0, 'Low': 0, 'Very Low': 0, 'Not assessed': 0 };
+  var dirCounts = { 'Beneficial': 0, 'Harmful': 0, 'No effect': 0, 'Mixed': 0 };
+  var gapList = [];
+
+  for (var iIdx = 0; iIdx < ni; iIdx++) {
+    for (var oIdx = 0; oIdx < no; oIdx++) {
+      var cell = getCellData(iIdx, oIdx);
+      if (cell.k > 0) {
+        filled++;
+        totalStudies += cell.k;
+        certCounts[cell.certainty] = (certCounts[cell.certainty] || 0) + 1;
+        dirCounts[cell.direction] = (dirCounts[cell.direction] || 0) + 1;
+      } else {
+        gaps++;
+        gapList.push({ iIdx: iIdx, oIdx: oIdx });
+      }
+    }
+  }
+
+  // Stats
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statFilled').textContent = filled;
+  document.getElementById('statFilledPct').textContent = total ? Math.round(filled / total * 100) + '% coverage' : '';
+  document.getElementById('statGaps').textContent = gaps;
+  document.getElementById('statGapsPct').textContent = total ? Math.round(gaps / total * 100) + '% gaps' : '';
+  document.getElementById('statStudies').textContent = totalStudies;
+
+  // Gap priority: if neighboring cells have beneficial + high/moderate evidence, priority is higher
+  gapList.forEach(function(g) {
+    var score = 0;
+    var neighbors = [
+      {iIdx: g.iIdx - 1, oIdx: g.oIdx},
+      {iIdx: g.iIdx + 1, oIdx: g.oIdx},
+      {iIdx: g.iIdx, oIdx: g.oIdx - 1},
+      {iIdx: g.iIdx, oIdx: g.oIdx + 1}
+    ];
+    neighbors.forEach(function(nb) {
+      if (nb.iIdx >= 0 && nb.iIdx < ni && nb.oIdx >= 0 && nb.oIdx < no) {
+        var nc = getCellData(nb.iIdx, nb.oIdx);
+        if (nc.k > 0) {
+          if (nc.certainty === 'High') score += 3;
+          else if (nc.certainty === 'Moderate') score += 2;
+          else if (nc.certainty === 'Low') score += 1;
+          if (nc.direction === 'Beneficial') score += 2;
+        }
+      }
+    });
+    g.priority = score >= 5 ? 'High' : score >= 2 ? 'Medium' : 'Low';
+    g.score = score;
+  });
+  gapList.sort(function(a, b) { return b.score - a.score; });
+
+  // Gap table
+  document.getElementById('gapCountBadge').textContent = gaps;
+  var gapHtml = '';
+  if (gapList.length === 0) {
+    gapHtml = '<div class="empty-state"><div class="es-icon">&#9989;</div>' +
+      '<div class="es-title">No gaps detected</div>' +
+      '<div class="es-desc">All cells have at least one study.</div></div>';
+  } else {
+    gapHtml = '<table><thead><tr>' +
+      '<th>#</th><th>Intervention</th><th>Outcome</th><th>Priority</th><th>Reason</th>' +
+      '</tr></thead><tbody>';
+    gapList.forEach(function(g, idx) {
+      var intv = appState.interventions[g.iIdx];
+      var outc = appState.outcomes[g.oIdx];
+      var reason = g.score >= 5 ? 'High-quality evidence in adjacent cells suggests this intervention-outcome pair is promising' :
+                   g.score >= 2 ? 'Some evidence in neighboring cells — gap may be informative' :
+                   'No adjacent evidence to guide priority';
+      gapHtml += '<tr>' +
+        '<td>' + (idx + 1) + '</td>' +
+        '<td>' + escHtml(intv) + '</td>' +
+        '<td>' + escHtml(outc) + '</td>' +
+        '<td><span class="priority-badge priority-' + g.priority + '">' + g.priority + '</span></td>' +
+        '<td style="color:var(--text3);font-size:12px">' + escHtml(reason) + '</td>' +
+        '</tr>';
+    });
+    gapHtml += '</tbody></table>';
+  }
+  document.getElementById('gapTableBody').innerHTML = gapHtml;
+
+  // Bar chart: certainty
+  drawCertBar(certCounts, filled);
+
+  // Donut: direction
+  drawDirDonut(dirCounts, filled);
+
+  // Heatmap
+  drawHeatmap();
+}
+
+function drawCertBar(certCounts, filled) {
+  var canvas = document.getElementById('certBarCanvas');
+  var W = canvas.parentElement.clientWidth - 32;
+  if (W < 200) W = 400;
+  canvas.width = W;
+  canvas.height = 220;
+  var ctx = canvas.getContext('2d');
+  var isDark = appState.darkMode;
+  ctx.fillStyle = isDark ? '#161b22' : '#ffffff';
+  ctx.fillRect(0, 0, W, 220);
+
+  var colors = appState.darkMode ? GRADE_COLORS_DARK : GRADE_COLORS;
+  var certs = ['High','Moderate','Low','Very Low','Not assessed'];
+  var maxCount = Math.max.apply(null, certs.map(function(c) { return certCounts[c] || 0; }));
+  if (maxCount === 0) maxCount = 1;
+
+  var barW = Math.floor((W - 80) / certs.length) - 8;
+  var maxH = 160;
+  var baseY = 185;
+
+  certs.forEach(function(cert, idx) {
+    var count = certCounts[cert] || 0;
+    var h = count ? Math.max(4, (count / maxCount) * maxH) : 0;
+    var x = 40 + idx * (barW + 8);
+    ctx.fillStyle = colors[cert];
+    ctx.globalAlpha = count ? 0.85 : 0.2;
+    ctx.fillRect(x, baseY - h, barW, h);
+    ctx.globalAlpha = 1;
+    // Label
+    ctx.fillStyle = isDark ? '#8b949e' : '#4a5568';
+    ctx.font = '10px sans-serif';
+    ctx.textAlign = 'center';
+    var shortCert = cert === 'Not assessed' ? 'N/A' : cert === 'Very Low' ? 'Very\nLow' : cert;
+    ctx.fillText(shortCert.split('\n')[0], x + barW / 2, baseY + 12);
+    if (shortCert.indexOf('\n') >= 0) ctx.fillText(shortCert.split('\n')[1], x + barW / 2, baseY + 22);
+    // Count
+    if (count > 0) {
+      ctx.fillStyle = isDark ? '#e6edf3' : '#1a202c';
+      ctx.font = 'bold 11px sans-serif';
+      ctx.fillText(count, x + barW / 2, baseY - h - 5);
+    }
+  });
+  // Y axis label
+  ctx.fillStyle = isDark ? '#6e7681' : '#718096';
+  ctx.font = '11px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.save(); ctx.translate(12, 120); ctx.rotate(-Math.PI / 2); ctx.fillText('Cells', 0, 0); ctx.restore();
+}
+
+function drawDirDonut(dirCounts, filled) {
+  var canvas = document.getElementById('dirDonutCanvas');
+  var W = canvas.parentElement.clientWidth - 32;
+  if (W < 200) W = 400;
+  canvas.width = W;
+  canvas.height = 220;
+  var ctx = canvas.getContext('2d');
+  var isDark = appState.darkMode;
+  ctx.fillStyle = isDark ? '#161b22' : '#ffffff';
+  ctx.fillRect(0, 0, W, 220);
+
+  var dirs = ['Beneficial','Harmful','No effect','Mixed'];
+  var dirColors = { Beneficial: '#276749', Harmful: '#c53030', 'No effect': '#718096', Mixed: '#c05621' };
+  if (isDark) { dirColors = { Beneficial: '#56d364', Harmful: '#ff7b72', 'No effect': '#8b949e', Mixed: '#f0883e' }; }
+  var total = dirs.reduce(function(s, d) { return s + (dirCounts[d] || 0); }, 0);
+  if (total === 0) {
+    ctx.fillStyle = isDark ? '#8b949e' : '#718096';
+    ctx.font = '13px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('No data', W / 2, 110);
+    return;
+  }
+  var cx = W * 0.4, cy = 110, outerR = 80, innerR = 48;
+  var startAngle = -Math.PI / 2;
+  dirs.forEach(function(dir) {
+    var count = dirCounts[dir] || 0;
+    if (!count) return;
+    var angle = (count / total) * Math.PI * 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, outerR, startAngle, startAngle + angle);
+    ctx.closePath();
+    ctx.fillStyle = dirColors[dir];
+    ctx.globalAlpha = 0.85;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    startAngle += angle;
+  });
+  // Inner hole
+  ctx.beginPath(); ctx.arc(cx, cy, innerR, 0, Math.PI * 2);
+  ctx.fillStyle = isDark ? '#161b22' : '#ffffff'; ctx.fill();
+  // Center text
+  ctx.fillStyle = isDark ? '#e6edf3' : '#1a202c';
+  ctx.font = 'bold 18px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(total, cx, cy - 8);
+  ctx.font = '11px sans-serif'; ctx.fillStyle = isDark ? '#8b949e' : '#718096';
+  ctx.fillText('cells', cx, cy + 10);
+  // Legend
+  var legX = W * 0.75, legY = 50;
+  ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+  dirs.forEach(function(dir) {
+    var count = dirCounts[dir] || 0;
+    ctx.fillStyle = dirColors[dir]; ctx.globalAlpha = 0.85;
+    ctx.fillRect(legX, legY - 7, 14, 14);
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = isDark ? '#8b949e' : '#4a5568';
+    ctx.font = '11px sans-serif';
+    ctx.fillText(dir + ' (' + count + ')', legX + 20, legY);
+    legY += 26;
+  });
+}
+
+function drawHeatmap() {
+  var ni = appState.interventions.length;
+  var no = appState.outcomes.length;
+  var canvas = document.getElementById('heatmapCanvas');
+  if (ni === 0 || no === 0) {
+    canvas.width = 300; canvas.height = 60;
+    var ctx2 = canvas.getContext('2d');
+    ctx2.fillStyle = appState.darkMode ? '#161b22' : '#f0f4f8';
+    ctx2.fillRect(0, 0, 300, 60);
+    ctx2.fillStyle = appState.darkMode ? '#8b949e' : '#718096';
+    ctx2.font = '13px sans-serif'; ctx2.textAlign = 'center';
+    ctx2.fillText('No data', 150, 35);
+    return;
+  }
+  var maxK = 0;
+  for (var i = 0; i < ni; i++) {
+    for (var j = 0; j < no; j++) {
+      var k = getCellData(i, j).k || 0;
+      if (k > maxK) maxK = k;
+    }
+  }
+  if (maxK === 0) maxK = 1;
+  var cellW = 80, cellH = 52;
+  var padL = 160, padT = 70, padR = 20, padB = 20;
+  var W = padL + no * cellW + padR;
+  var H = padT + ni * cellH + padB;
+  canvas.width = W; canvas.height = H;
+  var ctx = canvas.getContext('2d');
+  var isDark = appState.darkMode;
+  ctx.fillStyle = isDark ? '#161b22' : '#ffffff';
+  ctx.fillRect(0, 0, W, H);
+
+  // Outcome headers
+  ctx.fillStyle = isDark ? '#8b949e' : '#4a5568';
+  ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+  appState.outcomes.forEach(function(outc, oIdx) {
+    var x = padL + oIdx * cellW + cellW / 2;
+    ctx.fillText(outc.length > 12 ? outc.slice(0, 11) + '…' : outc, x, padT - 8);
+  });
+
+  // Intervention labels
+  ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  ctx.font = 'bold 11px sans-serif';
+  appState.interventions.forEach(function(intv, iIdx) {
+    var y = padT + iIdx * cellH + cellH / 2;
+    var label = intv.length > 20 ? intv.slice(0, 19) + '…' : intv;
+    ctx.fillText(label, padL - 10, y);
+  });
+
+  // Cells
+  for (var iIdx = 0; iIdx < ni; iIdx++) {
+    for (var oIdx = 0; oIdx < no; oIdx++) {
+      var cell = getCellData(iIdx, oIdx);
+      var k = cell.k || 0;
+      var x = padL + oIdx * cellW;
+      var y = padT + iIdx * cellH;
+      var intensity = k / maxK;
+      if (k === 0) {
+        ctx.fillStyle = isDark ? '#21262d' : '#f7fafc';
+        ctx.fillRect(x, y, cellW, cellH);
+        ctx.strokeStyle = isDark ? '#30363d' : '#e2e8f0';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([3, 2]);
+        ctx.strokeRect(x + 0.5, y + 0.5, cellW - 1, cellH - 1);
+        ctx.setLineDash([]);
+        ctx.fillStyle = isDark ? '#484f58' : '#cbd5e0';
+        ctx.font = '18px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('—', x + cellW / 2, y + cellH / 2);
+      } else {
+        // Blue heatmap color
+        var alpha = 0.15 + intensity * 0.85;
+        ctx.fillStyle = isDark ?
+          'rgba(88, 166, 255, ' + alpha + ')' :
+          'rgba(49, 130, 206, ' + alpha + ')';
+        ctx.fillRect(x, y, cellW, cellH);
+        ctx.strokeStyle = isDark ? '#30363d' : '#e2e8f0';
+        ctx.lineWidth = 1; ctx.setLineDash([]);
+        ctx.strokeRect(x + 0.5, y + 0.5, cellW - 1, cellH - 1);
+        // k label
+        ctx.fillStyle = intensity > 0.5 ? '#ffffff' : (isDark ? '#e6edf3' : '#1a202c');
+        ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(k, x + cellW / 2, y + cellH / 2);
+        ctx.font = '10px sans-serif';
+        ctx.fillStyle = intensity > 0.5 ? 'rgba(255,255,255,0.7)' : (isDark ? '#8b949e' : '#718096');
+        ctx.fillText('studies', x + cellW / 2, y + cellH / 2 + 16);
+      }
+    }
+  }
+}
+
+// ======================== EXPORT ========================
+function exportBubblePNG() {
+  renderBubbleMap();
+  var canvas = document.getElementById('bubbleCanvas');
+  var url = canvas.toDataURL('image/png');
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'evidence-map-bubbles.png';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function exportHeatmapPNG() {
+  drawHeatmap();
+  var canvas = document.getElementById('heatmapCanvas');
+  var url = canvas.toDataURL('image/png');
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'evidence-map-heatmap.png';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function buildSummaryText() {
+  var ni = appState.interventions.length;
+  var no = appState.outcomes.length;
+  var total = ni * no;
+  var filled = 0, totalStudies = 0;
+  var certCounts = { 'High': 0, 'Moderate': 0, 'Low': 0, 'Very Low': 0, 'Not assessed': 0 };
+  for (var i = 0; i < ni; i++) {
+    for (var j = 0; j < no; j++) {
+      var cell = getCellData(i, j);
+      if (cell.k > 0) {
+        filled++;
+        totalStudies += cell.k;
+        certCounts[cell.certainty] = (certCounts[cell.certainty] || 0) + 1;
+      }
+    }
+  }
+  var gaps = total - filled;
+  var lines = [
+    'EvidenceMap Summary',
+    '==================',
+    'Interventions: ' + ni + ' (' + appState.interventions.join(', ') + ')',
+    'Outcomes: ' + no + ' (' + appState.outcomes.join(', ') + ')',
+    '',
+    'Total cells: ' + total,
+    'Filled: ' + filled + ' (' + (total ? Math.round(filled / total * 100) : 0) + '%)',
+    'Gaps: ' + gaps + ' (' + (total ? Math.round(gaps / total * 100) : 0) + '%)',
+    'Total studies (k): ' + totalStudies,
+    '',
+    'Evidence by certainty:',
+    '  High: ' + certCounts['High'],
+    '  Moderate: ' + certCounts['Moderate'],
+    '  Low: ' + certCounts['Low'],
+    '  Very Low: ' + certCounts['Very Low'],
+    '  Not assessed: ' + certCounts['Not assessed'],
+    '',
+    'Generated: ' + new Date().toLocaleDateString()
+  ];
+  return lines.join('\n');
+}
+
+function copySummary() {
+  var text = buildSummaryText();
+  var btn = document.getElementById('copyBtn');
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(function() {
+      btn.textContent = '✓ Copied!';
+      setTimeout(function() { btn.textContent = '📋 Copy Summary Text'; }, 2000);
+    });
+  } else {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta);
+    btn.textContent = '✓ Copied!';
+    setTimeout(function() { btn.textContent = '📋 Copy Summary Text'; }, 2000);
+  }
+}
+
+function exportCSV() {
+  var lines = ['Intervention,Outcome,k,Certainty,Direction,Effect'];
+  appState.interventions.forEach(function(intv, iIdx) {
+    appState.outcomes.forEach(function(outc, oIdx) {
+      var cell = getCellData(iIdx, oIdx);
+      lines.push([
+        '"' + intv.replace(/"/g, '""') + '"',
+        '"' + outc.replace(/"/g, '""') + '"',
+        cell.k || 0,
+        '"' + (cell.certainty || '').replace(/"/g, '""') + '"',
+        '"' + (cell.direction || '').replace(/"/g, '""') + '"',
+        '"' + (cell.effect || '').replace(/"/g, '""') + '"'
+      ].join(','));
+    });
+  });
+  var blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = 'evidence-map-data.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function exportGapReport() {
+  var ni = appState.interventions.length;
+  var no = appState.outcomes.length;
+  var total = ni * no;
+  var filled = 0, totalStudies = 0, gaps = 0;
+  var certCounts = { 'High': 0, 'Moderate': 0, 'Low': 0, 'Very Low': 0, 'Not assessed': 0 };
+  var gapList = [];
+  for (var i = 0; i < ni; i++) {
+    for (var j = 0; j < no; j++) {
+      var cell = getCellData(i, j);
+      if (cell.k > 0) {
+        filled++;
+        totalStudies += cell.k;
+        certCounts[cell.certainty] = (certCounts[cell.certainty] || 0) + 1;
+      } else {
+        gaps++;
+        gapList.push({ intv: appState.interventions[i], outc: appState.outcomes[j] });
+      }
+    }
+  }
+  var gapRows = gapList.map(function(g, idx) {
+    return '<tr><td>' + (idx + 1) + '</td><td>' + escHtml(g.intv) + '</td><td>' + escHtml(g.outc) + '</td></tr>';
+  }).join('');
+  var certRows = Object.keys(certCounts).map(function(c) {
+    return '<tr><td>' + escHtml(c) + '</td><td>' + certCounts[c] + '</td></tr>';
+  }).join('');
+
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
+    '<title>EvidenceMap Gap Report</title>' +
+    '<style>body{font-family:sans-serif;max-width:900px;margin:40px auto;padding:0 20px;color:#1a202c}' +
+    'h1{color:#3182ce}table{border-collapse:collapse;width:100%;margin:16px 0}' +
+    'th,td{border:1px solid #d1d9e0;padding:8px 12px;text-align:left}th{background:#f0f4f8;font-weight:600}' +
+    '.stat{display:inline-block;background:#f0f4f8;border-radius:8px;padding:12px 20px;margin:8px;text-align:center}' +
+    '.stat-num{font-size:28px;font-weight:700;color:#3182ce}.stat-label{font-size:12px;color:#718096}' +
+    '</style></head><body>' +
+    '<h1>EvidenceMap Gap Analysis Report</h1>' +
+    '<p>Generated: ' + new Date().toLocaleDateString() + '</p>' +
+    '<h2>Summary Statistics</h2>' +
+    '<div class="stat"><div class="stat-num">' + total + '</div><div class="stat-label">Total Cells</div></div>' +
+    '<div class="stat"><div class="stat-num">' + filled + '</div><div class="stat-label">Filled (' + (total ? Math.round(filled/total*100) : 0) + '%)</div></div>' +
+    '<div class="stat"><div class="stat-num">' + gaps + '</div><div class="stat-label">Gaps (' + (total ? Math.round(gaps/total*100) : 0) + '%)</div></div>' +
+    '<div class="stat"><div class="stat-num">' + totalStudies + '</div><div class="stat-label">Total Studies</div></div>' +
+    '<h2>Evidence by Certainty</h2><table><tr><th>GRADE Certainty</th><th>Cells</th></tr>' + certRows + '</table>' +
+    '<h2>Evidence Gaps (' + gaps + ')</h2>' +
+    (gaps === 0 ? '<p>No gaps detected — all cells have evidence.</p>' :
+    '<table><tr><th>#</th><th>Intervention</th><th>Outcome</th></tr>' + gapRows + '</table>') +
+    '<h2>Interventions</h2><ul>' + appState.interventions.map(function(v) { return '<li>' + escHtml(v) + '</li>'; }).join('') + '</ul>' +
+    '<h2>Outcomes</h2><ul>' + appState.outcomes.map(function(v) { return '<li>' + escHtml(v) + '</li>'; }).join('') + '</ul>' +
+    '</body></html>';
+
+  var blob = new Blob([html], { type: 'text/html' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = 'evidence-gap-report.html';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function printView() {
+  window.print();
+}
+
+function renderExportSummary() {
+  document.getElementById('summaryBox').textContent = buildSummaryText();
+}
+
+// ======================== EXAMPLES ========================
+var EXAMPLES = [
+  {
+    name: 'Cardiovascular Interventions',
+    interventions: ['Statins', 'ACE Inhibitors', 'Beta-Blockers', 'SGLT2 Inhibitors', 'Aspirin', 'Omega-3 FA'],
+    outcomes: ['Mortality', 'MI', 'Stroke', 'HF Hospitalization', 'Bleeding'],
+    cells: [
+      // Statins
+      [0,0,{k:24,effect:'RR 0.86 (0.82-0.91)',certainty:'High',direction:'Beneficial'}],
+      [0,1,{k:22,effect:'RR 0.73 (0.69-0.78)',certainty:'High',direction:'Beneficial'}],
+      [0,2,{k:18,effect:'RR 0.84 (0.79-0.90)',certainty:'High',direction:'Beneficial'}],
+      [0,3,{k:12,effect:'RR 0.90 (0.84-0.97)',certainty:'Moderate',direction:'Beneficial'}],
+      [0,4,{k:8,effect:'RR 1.04 (0.97-1.12)',certainty:'Moderate',direction:'No effect'}],
+      // ACE Inhibitors
+      [1,0,{k:16,effect:'RR 0.84 (0.79-0.89)',certainty:'High',direction:'Beneficial'}],
+      [1,1,{k:14,effect:'RR 0.82 (0.77-0.88)',certainty:'High',direction:'Beneficial'}],
+      [1,2,{k:10,effect:'RR 0.79 (0.73-0.85)',certainty:'High',direction:'Beneficial'}],
+      [1,3,{k:18,effect:'RR 0.72 (0.68-0.76)',certainty:'High',direction:'Beneficial'}],
+      [1,4,{k:5,effect:'RR 1.12 (1.03-1.22)',certainty:'Moderate',direction:'Harmful'}],
+      // Beta-Blockers
+      [2,0,{k:11,effect:'RR 0.88 (0.83-0.94)',certainty:'High',direction:'Beneficial'}],
+      [2,1,{k:9,effect:'RR 0.85 (0.79-0.92)',certainty:'Moderate',direction:'Beneficial'}],
+      [2,2,{k:4,effect:'RR 0.95 (0.87-1.04)',certainty:'Low',direction:'No effect'}],
+      [2,3,{k:14,effect:'RR 0.77 (0.73-0.81)',certainty:'High',direction:'Beneficial'}],
+      [2,4,{k:3,effect:'',certainty:'Very Low',direction:'Mixed'}],
+      // SGLT2 Inhibitors
+      [3,0,{k:7,effect:'RR 0.87 (0.82-0.92)',certainty:'High',direction:'Beneficial'}],
+      [3,1,{k:5,effect:'RR 0.89 (0.84-0.95)',certainty:'High',direction:'Beneficial'}],
+      [3,2,{k:3,effect:'RR 0.96 (0.89-1.04)',certainty:'Moderate',direction:'No effect'}],
+      [3,3,{k:9,effect:'RR 0.69 (0.64-0.74)',certainty:'High',direction:'Beneficial'}],
+      [3,4,{k:0,effect:'',certainty:'Not assessed',direction:'No effect'}],
+      // Aspirin
+      [4,0,{k:12,effect:'RR 0.94 (0.89-0.99)',certainty:'Moderate',direction:'Beneficial'}],
+      [4,1,{k:15,effect:'RR 0.81 (0.76-0.87)',certainty:'High',direction:'Beneficial'}],
+      [4,2,{k:13,effect:'RR 0.83 (0.78-0.88)',certainty:'High',direction:'Beneficial'}],
+      [4,3,{k:0,effect:'',certainty:'Not assessed',direction:'No effect'}],
+      [4,4,{k:17,effect:'RR 1.54 (1.41-1.69)',certainty:'High',direction:'Harmful'}],
+      // Omega-3 FA
+      [5,0,{k:4,effect:'RR 0.96 (0.91-1.01)',certainty:'Moderate',direction:'No effect'}],
+      [5,1,{k:3,effect:'RR 0.92 (0.85-1.00)',certainty:'Low',direction:'Beneficial'}],
+      [5,2,{k:0,effect:'',certainty:'Not assessed',direction:'No effect'}],
+      [5,3,{k:2,effect:'',certainty:'Very Low',direction:'Mixed'}],
+      [5,4,{k:0,effect:'',certainty:'Not assessed',direction:'No effect'}]
+    ]
+  },
+  {
+    name: 'Mental Health Treatments',
+    interventions: ['CBT','SSRI','Psychodynamic Therapy','Mindfulness','Exercise'],
+    outcomes: ['Depression', 'Anxiety', 'Quality of Life', 'Adverse Events'],
+    cells: [
+      [0,0,{k:18,effect:'SMD -0.82 (-1.01 to -0.63)',certainty:'High',direction:'Beneficial'}],
+      [0,1,{k:14,effect:'SMD -0.73 (-0.89 to -0.57)',certainty:'High',direction:'Beneficial'}],
+      [0,2,{k:8,effect:'SMD 0.52 (0.34-0.70)',certainty:'Moderate',direction:'Beneficial'}],
+      [0,3,{k:6,effect:'Low rates',certainty:'Moderate',direction:'Beneficial'}],
+      [1,0,{k:22,effect:'SMD -0.68 (-0.82 to -0.54)',certainty:'High',direction:'Beneficial'}],
+      [1,1,{k:20,effect:'SMD -0.65 (-0.77 to -0.53)',certainty:'High',direction:'Beneficial'}],
+      [1,2,{k:10,effect:'SMD 0.41 (0.24-0.58)',certainty:'Moderate',direction:'Beneficial'}],
+      [1,3,{k:15,effect:'OR 2.1 (1.8-2.5)',certainty:'High',direction:'Harmful'}],
+      [2,0,{k:9,effect:'SMD -0.60 (-0.82 to -0.38)',certainty:'Moderate',direction:'Beneficial'}],
+      [2,1,{k:7,effect:'SMD -0.55 (-0.75 to -0.35)',certainty:'Moderate',direction:'Beneficial'}],
+      [2,2,{k:4,effect:'',certainty:'Low',direction:'Beneficial'}],
+      [2,3,{k:2,effect:'',certainty:'Very Low',direction:'No effect'}],
+      [3,0,{k:12,effect:'SMD -0.51 (-0.68 to -0.34)',certainty:'Moderate',direction:'Beneficial'}],
+      [3,1,{k:10,effect:'SMD -0.60 (-0.76 to -0.44)',certainty:'Moderate',direction:'Beneficial'}],
+      [3,2,{k:0,effect:'',certainty:'Not assessed',direction:'No effect'}],
+      [3,3,{k:3,effect:'',certainty:'Low',direction:'Beneficial'}],
+      [4,0,{k:8,effect:'SMD -0.48 (-0.66 to -0.30)',certainty:'Moderate',direction:'Beneficial'}],
+      [4,1,{k:5,effect:'SMD -0.42 (-0.62 to -0.22)',certainty:'Low',direction:'Beneficial'}],
+      [4,2,{k:0,effect:'',certainty:'Not assessed',direction:'No effect'}],
+      [4,3,{k:0,effect:'',certainty:'Not assessed',direction:'No effect'}]
+    ]
+  },
+  {
+    name: 'COVID-19 Treatments',
+    interventions: ['Dexamethasone','Remdesivir','Baricitinib','Tocilizumab','Convalescent Plasma','Ivermectin','Hydroxychloroquine','Colchicine'],
+    outcomes: ['Mortality', 'Ventilation', 'Adverse Events'],
+    cells: [
+      [0,0,{k:11,effect:'RR 0.76 (0.67-0.87)',certainty:'High',direction:'Beneficial'}],
+      [0,1,{k:8,effect:'RR 0.73 (0.63-0.85)',certainty:'High',direction:'Beneficial'}],
+      [0,2,{k:6,effect:'',certainty:'Moderate',direction:'Mixed'}],
+      [1,0,{k:8,effect:'RR 0.91 (0.84-0.99)',certainty:'Moderate',direction:'Beneficial'}],
+      [1,1,{k:6,effect:'RR 0.84 (0.76-0.92)',certainty:'Moderate',direction:'Beneficial'}],
+      [1,2,{k:5,effect:'',certainty:'Low',direction:'No effect'}],
+      [2,0,{k:5,effect:'RR 0.75 (0.63-0.89)',certainty:'High',direction:'Beneficial'}],
+      [2,1,{k:4,effect:'RR 0.70 (0.60-0.82)',certainty:'High',direction:'Beneficial'}],
+      [2,2,{k:3,effect:'',certainty:'Moderate',direction:'Beneficial'}],
+      [3,0,{k:9,effect:'RR 0.83 (0.76-0.91)',certainty:'High',direction:'Beneficial'}],
+      [3,1,{k:7,effect:'RR 0.78 (0.70-0.87)',certainty:'High',direction:'Beneficial'}],
+      [3,2,{k:4,effect:'',certainty:'Moderate',direction:'No effect'}],
+      [4,0,{k:6,effect:'RR 0.97 (0.89-1.06)',certainty:'Moderate',direction:'No effect'}],
+      [4,1,{k:4,effect:'RR 0.95 (0.85-1.06)',certainty:'Low',direction:'No effect'}],
+      [4,2,{k:0,effect:'',certainty:'Not assessed',direction:'No effect'}],
+      [5,0,{k:7,effect:'RR 0.98 (0.89-1.08)',certainty:'Moderate',direction:'No effect'}],
+      [5,1,{k:5,effect:'',certainty:'Low',direction:'No effect'}],
+      [5,2,{k:3,effect:'',certainty:'Very Low',direction:'Mixed'}],
+      [6,0,{k:9,effect:'RR 1.02 (0.94-1.10)',certainty:'High',direction:'No effect'}],
+      [6,1,{k:7,effect:'RR 1.06 (0.96-1.17)',certainty:'High',direction:'No effect'}],
+      [6,2,{k:5,effect:'',certainty:'Moderate',direction:'Harmful'}],
+      [7,0,{k:4,effect:'RR 0.94 (0.82-1.08)',certainty:'Moderate',direction:'No effect'}],
+      [7,1,{k:0,effect:'',certainty:'Not assessed',direction:'No effect'}],
+      [7,2,{k:2,effect:'',certainty:'Low',direction:'Beneficial'}]
+    ]
+  }
+];
+
+function loadExample(idx) {
+  var ex = EXAMPLES[idx];
+  if (!ex) return;
+  appState.interventions = ex.interventions.slice();
+  appState.outcomes = ex.outcomes.slice();
+  appState.cells = {};
+  ex.cells.forEach(function(c) {
+    appState.cells[cellKey(c[0], c[1])] = c[2];
+  });
+  renderInterventionList();
+  renderOutcomeList();
+  renderCellTable();
+  saveState();
+  // Show feedback
+  var btn = document.querySelector('.header-right .btn:nth-child(' + (idx + 1) + ')');
+}
+
+// ======================== INIT ========================
+function init() {
+  loadState();
+  applyDark();
+  renderInterventionList();
+  renderOutcomeList();
+  renderCellTable();
+  document.getElementById('zoomVal').textContent = Math.round((appState.zoom || 1.0) * 100) + '%';
+}
+
+window.addEventListener('load', init);
+window.addEventListener('resize', function() {
+  if (document.getElementById('panel-map').classList.contains('active')) renderBubbleMap();
+  if (document.getElementById('panel-gaps').classList.contains('active')) renderGapAnalysis();
+});
+</script>
+</body>
+</html>
