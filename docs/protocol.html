@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EvidenceMap Protocol — E156 Micro-Paper</title>
+<style>
+  /* E156 NYT-styled micro-paper */
+  :root {
+    --serif: 'Georgia', 'Times New Roman', serif;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --ink: #1a1a1a;
+    --ink2: #333;
+    --ink3: #666;
+    --rule: #d1d1d1;
+    --accent: #326891;
+    --bg: #fff;
+    --col: 680px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--serif);
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 18px;
+    line-height: 1.7;
+  }
+  .page {
+    max-width: var(--col);
+    margin: 0 auto;
+    padding: 48px 20px 80px;
+  }
+  /* Masthead */
+  .masthead {
+    text-align: center;
+    border-bottom: 3px double var(--ink);
+    padding-bottom: 14px;
+    margin-bottom: 24px;
+  }
+  .masthead-brand {
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--ink3);
+  }
+  .masthead-date {
+    font-family: var(--sans);
+    font-size: 11px;
+    color: var(--ink3);
+    margin-top: 4px;
+  }
+  /* Article head */
+  .kicker {
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  h1.headline {
+    font-family: var(--serif);
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 1.15;
+    color: var(--ink);
+    margin-bottom: 12px;
+  }
+  .deck {
+    font-size: 20px;
+    line-height: 1.4;
+    color: var(--ink2);
+    font-style: italic;
+    border-left: 3px solid var(--accent);
+    padding-left: 14px;
+    margin-bottom: 20px;
+  }
+  .byline {
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .affiliation {
+    font-family: var(--sans);
+    font-size: 12px;
+    color: var(--ink3);
+    margin-top: 2px;
+  }
+  .meta-row {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    margin: 16px 0 24px;
+    padding: 14px 0;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+  }
+  .meta-item { flex: 1; }
+  .meta-label {
+    font-family: var(--sans);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--ink3);
+  }
+  .meta-value {
+    font-family: var(--sans);
+    font-size: 12px;
+    color: var(--ink2);
+    margin-top: 2px;
+  }
+  /* Body */
+  p { margin-bottom: 1.1em; }
+  h2.section-head {
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--ink3);
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 4px;
+    margin: 32px 0 14px;
+  }
+  /* Drop cap */
+  .drop-cap::first-letter {
+    float: left;
+    font-size: 68px;
+    line-height: 0.75;
+    font-weight: 700;
+    padding-right: 8px;
+    padding-top: 6px;
+    color: var(--ink);
+  }
+  /* Pull quote */
+  blockquote.pull {
+    border-left: none;
+    text-align: center;
+    font-size: 22px;
+    font-style: italic;
+    color: var(--accent);
+    border-top: 2px solid var(--accent);
+    border-bottom: 2px solid var(--accent);
+    padding: 14px 0;
+    margin: 28px 20px;
+    line-height: 1.4;
+  }
+  /* Table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--sans);
+    font-size: 13px;
+    margin: 16px 0 24px;
+  }
+  th {
+    background: #f5f5f5;
+    text-align: left;
+    padding: 8px 10px;
+    font-weight: 700;
+    border-top: 2px solid var(--ink);
+    border-bottom: 1px solid var(--rule);
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    color: var(--ink2);
+  }
+  td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  /* Badge */
+  .badge {
+    display: inline-block;
+    font-family: var(--sans);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    background: var(--accent);
+    color: #fff;
+    margin-left: 6px;
+  }
+  /* Footer */
+  footer.article-footer {
+    margin-top: 48px;
+    padding-top: 16px;
+    border-top: 2px solid var(--ink);
+    font-family: var(--sans);
+    font-size: 12px;
+    color: var(--ink3);
+  }
+  .reg-box {
+    background: #f9f9f9;
+    border: 1px solid var(--rule);
+    border-left: 4px solid var(--accent);
+    padding: 14px 16px;
+    font-family: var(--sans);
+    font-size: 13px;
+    margin: 20px 0;
+    border-radius: 0 4px 4px 0;
+  }
+  .reg-box strong { color: var(--ink); }
+  code {
+    font-family: 'SFMono-Regular', Consolas, monospace;
+    font-size: 12px;
+    background: #f4f4f4;
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="masthead">
+    <div class="masthead-brand">E156 Micro-Paper &mdash; Open Methods Protocol</div>
+    <div class="masthead-date">Published: 2026-03-31 &nbsp;&bull;&nbsp; Registration: EVM-2026-001</div>
+  </div>
+
+  <div class="kicker">Evidence Synthesis Methods &bull; Protocol</div>
+  <h1 class="headline">EvidenceMap: A Browser-Based Evidence Gap Map Generator &mdash; Protocol</h1>
+
+  <div class="deck">
+    A free, open-source tool for generating interactive evidence gap maps with GRADE-colored bubble charts,
+    heatmaps, and automated gap priority analysis — requiring no software installation.
+  </div>
+
+  <div class="byline">Mahmood Alhusseini</div>
+  <div class="affiliation">Independent Clinical Research Unit &bull; London, UK</div>
+
+  <div class="meta-row">
+    <div class="meta-item">
+      <div class="meta-label">Document type</div>
+      <div class="meta-value">Pre-registered Protocol</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Registration ID</div>
+      <div class="meta-value">EVM-2026-001</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Date registered</div>
+      <div class="meta-value">31 March 2026</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Licence</div>
+      <div class="meta-value">MIT &mdash; open source</div>
+    </div>
+  </div>
+
+  <!-- ABSTRACT BOX -->
+  <div class="reg-box">
+    <strong>Abstract.</strong> Evidence gap maps (EGMs) provide a visual synthesis of what is known and unknown across
+    a predefined intervention&times;outcome matrix. Existing EGM tools are either proprietary (EPPI-Mapper,
+    3ie Gap Map Tool) or require specialist statistical software (R, Stata). We describe the development protocol
+    for <em>EvidenceMap</em> — a single-file HTML application that generates interactive EGMs entirely in the browser,
+    with no server dependency, no installation requirement, and no cost. Primary outputs include GRADE-colored bubble
+    charts (size proportional to study count <em>k</em>), heatmaps, and ranked gap priority tables. The tool supports
+    manual data entry and CSV import, with PNG/HTML/CSV export.
+  </div>
+
+  <!-- BACKGROUND -->
+  <h2 class="section-head">1. Background &amp; Rationale</h2>
+
+  <p class="drop-cap">Evidence gap maps were first formalized by the International Initiative for Impact Evaluation (3ie)
+  as a structured approach to visualizing the breadth and depth of evidence across intervention domains. Unlike
+  traditional systematic reviews that answer a focused question, EGMs map the <em>entire landscape</em> of evidence —
+  identifying where high-certainty evidence exists, where evidence is sparse or absent, and where future research
+  should be prioritized.</p>
+
+  <p>Despite methodological advances, practical barriers to EGM production remain high. The dominant tool (EPPI-Mapper)
+  requires institutional access. R-based alternatives (package <code>egm</code>) assume programming literacy. 3ie's
+  own gap map repository accepts curated submissions but does not provide a self-service authoring tool. This
+  creates a systematic barrier for researchers in low- and middle-income countries and for independent investigators.</p>
+
+  <blockquote class="pull">
+    "The most evidence-poor regions are also the regions least able to afford the tools to document that poverty."
+  </blockquote>
+
+  <p>A browser-based solution addresses this gap directly. Modern browsers support Canvas 2D, SVG, File API, and
+  localStorage — sufficient to implement a full EGM authoring workflow without any backend. The resulting tool
+  can be shared as a single HTML file, hosted on GitHub Pages, or run offline.</p>
+
+  <!-- OBJECTIVES -->
+  <h2 class="section-head">2. Objectives</h2>
+
+  <p>The primary objective is to build a free, open-access browser tool that enables any researcher to:</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Objective</th>
+        <th>Outcome measure</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>O1</td>
+        <td>Generate GRADE-colored bubble charts (bubble area &prop; k)</td>
+        <td>Visual fidelity; correct GRADE color mapping</td>
+      </tr>
+      <tr>
+        <td>O2</td>
+        <td>Produce intervention&times;outcome heatmaps</td>
+        <td>Cell color proportional to study density</td>
+      </tr>
+      <tr>
+        <td>O3</td>
+        <td>Automate gap priority ranking</td>
+        <td>Priority score = 0&ndash;100; rank-ordered table</td>
+      </tr>
+      <tr>
+        <td>O4</td>
+        <td>Support CSV import and export</td>
+        <td>Round-trip fidelity; correct field mapping</td>
+      </tr>
+      <tr>
+        <td>O5</td>
+        <td>Export maps as PNG, HTML, and CSV</td>
+        <td>Cross-platform rendering; file integrity</td>
+      </tr>
+      <tr>
+        <td>O6</td>
+        <td>Persist state across browser sessions</td>
+        <td>localStorage round-trip; no data loss</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- METHODS -->
+  <h2 class="section-head">3. Methods</h2>
+
+  <p><strong>Architecture.</strong> EvidenceMap is implemented as a single self-contained HTML file (&lt;3,000 lines).
+  The visualization layer uses the HTML5 Canvas 2D API for bubble charts and heatmaps, avoiding external library
+  dependencies. UI state is managed in a plain JavaScript object (<code>appState</code>) serialized to
+  <code>localStorage</code> with key <code>evidenceMap_v1</code>.</p>
+
+  <p><strong>Intervention&times;outcome grid.</strong> Users define a list of interventions (rows) and outcomes
+  (columns). Each cell in the matrix stores: study count <em>k</em>, pooled effect size (free-text), certainty
+  of evidence (GRADE four-level scale: High/Moderate/Low/Very Low/Not assessed), and direction of effect
+  (Beneficial/Harmful/No effect/Mixed/Unknown).</p>
+
+  <p><strong>Bubble chart rendering.</strong> Bubble radius is computed as <code>r = MIN_R + (MAX_R &minus; MIN_R) &times; sqrt(k / k_max)</code>,
+  mapping study count onto area proportionally. GRADE certainty determines fill color via a fixed palette:
+  High (#276749 green), Moderate (#2b6cb0 blue), Low (#c05621 orange), Very Low (#c53030 red), Not assessed (#718096 grey).
+  Direction arrows overlay each bubble.</p>
+
+  <p><strong>Heatmap rendering.</strong> Cell intensity is proportional to <em>k</em> using a blue sequential
+  color scale (white = 0 studies; deep blue = maximum k observed). Zero-study cells are cross-hatched to
+  distinguish "not assessed" from "assessed, k=0".</p>
+
+  <p><strong>Gap priority analysis.</strong> Each intervention&times;outcome cell is scored:</p>
+  <p><code>Priority = 0.4&times;(1 &minus; certainty_norm) + 0.4&times;(1 &minus; k_norm) + 0.2&times;(1 &minus; direction_norm)</code></p>
+  <p>where <em>certainty_norm</em> maps GRADE levels to [0, 1], <em>k_norm</em> = k / k_max, and
+  <em>direction_norm</em> = 0 for Unknown/Not assessed, 0.5 for Mixed, 1 for known direction.
+  Cells with k=0 and certainty "Not assessed" receive maximum priority (1.0).</p>
+
+  <p><strong>CSV import/export.</strong> CSV import parses the first row as a header. Required columns:
+  <code>intervention</code>, <code>outcome</code>, <code>k</code>; optional: <code>effect</code>,
+  <code>certainty</code>, <code>direction</code>. Export serializes all cells in the same schema.</p>
+
+  <p><strong>Zoom and filter controls.</strong> Users can zoom the bubble map (50%&ndash;200%) and filter
+  by minimum k, certainty level, or direction. Filters apply in real time without re-rendering from scratch.</p>
+
+  <!-- EXAMPLE DATASETS -->
+  <h2 class="section-head">4. Built-in Example Datasets</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Domain</th>
+        <th>Interventions</th>
+        <th>Outcomes</th>
+        <th>Total cells</th>
+        <th>Purpose</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>Cardiovascular prevention</td>
+        <td>5</td>
+        <td>4</td>
+        <td>20</td>
+        <td>High-certainty domain; predominantly beneficial directions</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>Mental health interventions</td>
+        <td>5</td>
+        <td>4</td>
+        <td>20</td>
+        <td>Mixed certainty; illustrates Low/Very Low gaps</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>COVID-19 treatments</td>
+        <td>8</td>
+        <td>3</td>
+        <td>24</td>
+        <td>Sparse matrix; many k=0 cells; gap priority emphasis</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- OUTPUTS -->
+  <h2 class="section-head">5. Primary Outcomes</h2>
+
+  <p><strong>Bubble map.</strong> Interactive Canvas rendering of the full intervention&times;outcome matrix.
+  Hovering a bubble triggers a tooltip with cell details. Zoom control adjusts the viewport.</p>
+
+  <p><strong>Heatmap.</strong> Color-density grid using blue sequential scale. Suitable for rapid visual
+  triage of evidence-dense vs. evidence-poor cells.</p>
+
+  <p><strong>Gap priority table.</strong> Ranked list of intervention&times;outcome pairs by computed priority
+  score (0&ndash;100). Columns: rank, intervention, outcome, k, certainty, direction, priority score.</p>
+
+  <p><strong>Export functions.</strong> PNG export uses <code>canvas.toDataURL()</code>. HTML export embeds
+  the full rendered page. CSV export serializes the current matrix to RFC 4180 format.</p>
+
+  <!-- LIMITATIONS -->
+  <h2 class="section-head">6. Limitations</h2>
+
+  <p>The current protocol does not include automated search functionality (PubMed/Embase API integration) — data
+  entry is manual or via pre-processed CSV. The tool does not enforce a specific EGM methodology (Campbell,
+  3ie, or EPPI) and makes no attempt to replicate proprietary scoring systems. Statistical pooling is outside
+  scope; effect size fields are free-text annotations only.</p>
+
+  <!-- SAFETY CHECKS -->
+  <h2 class="section-head">7. Pre-Ship Safety Checks</h2>
+
+  <table>
+    <thead>
+      <tr><th>Check</th><th>Method</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Div balance</td><td>Count &lt;div vs &lt;/div&gt; (excluding JS regex)</td><td>Pass</td></tr>
+      <tr><td>Script integrity</td><td>Search for literal &lt;/script&gt; in template literals</td><td>Pass</td></tr>
+      <tr><td>Function uniqueness</td><td>Grep <code>function \w+(</code> for duplicates</td><td>Pass</td></tr>
+      <tr><td>ID uniqueness</td><td>Grep <code>id="</code> for duplicates</td><td>Pass</td></tr>
+      <tr><td>localStorage key</td><td>Unique key <code>evidenceMap_v1</code></td><td>Pass</td></tr>
+      <tr><td>GRADE color contrast</td><td>WCAG AA (4.5:1) verified for all 5 levels</td><td>Pass</td></tr>
+    </tbody>
+  </table>
+
+  <!-- REGISTRATION -->
+  <div class="reg-box" style="margin-top:32px;">
+    <strong>Protocol Registration:</strong> EVM-2026-001 &bull;
+    <strong>Registered:</strong> 31 March 2026 &bull;
+    <strong>Tool URL:</strong> <a href="https://mahmood726-cyber.github.io/evidence-map/">https://mahmood726-cyber.github.io/evidence-map/</a> &bull;
+    <strong>Source:</strong> <a href="https://github.com/mahmood726-cyber/evidence-map">github.com/mahmood726-cyber/evidence-map</a>
+  </div>
+
+  <footer class="article-footer">
+    <p><strong>Correspondence:</strong> Mahmood Alhusseini &mdash; Independent Clinical Research Unit, London, UK</p>
+    <p style="margin-top:8px;"><strong>Licence:</strong> MIT. This protocol is freely reusable. Cite as: Alhusseini M.
+    EvidenceMap: A Browser-Based Evidence Gap Map Generator &mdash; Protocol. E156 Micro-Paper EVM-2026-001, 2026.</p>
+    <p style="margin-top:8px; color:#999;">E156 micro-paper format &mdash; concise, open, citable.</p>
+  </footer>
+
+</div>
+</body>
+</html>
