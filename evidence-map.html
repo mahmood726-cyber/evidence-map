@@ -1791,18 +1791,24 @@ function copySummary() {
   }
 }
 
+function csvSafeVal(v) {
+  var s = String(v == null ? '' : v);
+  if (/^[=+@\t\r]/.test(s)) s = "'" + s;
+  return '"' + s.replace(/"/g, '""') + '"';
+}
+
 function exportCSV() {
   var lines = ['Intervention,Outcome,k,Certainty,Direction,Effect'];
   appState.interventions.forEach(function(intv, iIdx) {
     appState.outcomes.forEach(function(outc, oIdx) {
       var cell = getCellData(iIdx, oIdx);
       lines.push([
-        '"' + intv.replace(/"/g, '""') + '"',
-        '"' + outc.replace(/"/g, '""') + '"',
+        csvSafeVal(intv),
+        csvSafeVal(outc),
         cell.k || 0,
-        '"' + (cell.certainty || '').replace(/"/g, '""') + '"',
-        '"' + (cell.direction || '').replace(/"/g, '""') + '"',
-        '"' + (cell.effect || '').replace(/"/g, '""') + '"'
+        csvSafeVal(cell.certainty || ''),
+        csvSafeVal(cell.direction || ''),
+        csvSafeVal(cell.effect || '')
       ].join(','));
     });
   });
@@ -2019,4 +2025,5 @@ window.addEventListener('resize', function() {
 });
 </script>
 </body>
+</html>
 </html>
