@@ -554,7 +554,7 @@ input[type="checkbox"] { accent-color: var(--accent); }
 </nav>
 
 <!-- ======================== TAB 1: DATA ENTRY ======================== -->
-<div class="tab-panel active" id="panel-entry">
+<div class="tab-panel active" id="panel-entry" role="tabpanel" aria-labelledby="tab-entry">
   <div class="entry-grid">
     <!-- Left column: Lists -->
     <div class="col">
@@ -614,7 +614,7 @@ input[type="checkbox"] { accent-color: var(--accent); }
 </div>
 
 <!-- ======================== TAB 2: EVIDENCE MAP ======================== -->
-<div class="tab-panel" id="panel-map">
+<div class="tab-panel" id="panel-map" role="tabpanel" aria-labelledby="tab-map">
   <div class="map-controls">
     <div class="filter-group">
       <label>Min studies:</label>
@@ -690,7 +690,7 @@ input[type="checkbox"] { accent-color: var(--accent); }
 </div>
 
 <!-- ======================== TAB 3: GAP ANALYSIS ======================== -->
-<div class="tab-panel" id="panel-gaps">
+<div class="tab-panel" id="panel-gaps" role="tabpanel" aria-labelledby="tab-gaps">
   <div class="stats-grid" id="statsGrid">
     <div class="stat-card">
       <div class="stat-num" id="statTotal">—</div>
@@ -740,7 +740,7 @@ input[type="checkbox"] { accent-color: var(--accent); }
 </div>
 
 <!-- ======================== TAB 4: EXPORT ======================== -->
-<div class="tab-panel" id="panel-export">
+<div class="tab-panel" id="panel-export" role="tabpanel" aria-labelledby="tab-export">
   <div class="export-grid">
     <div class="export-card">
       <div class="export-card-icon">&#128247;</div>
@@ -881,8 +881,14 @@ function switchTab(name) {
   document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
   document.getElementById('panel-' + name).classList.add('active');
   document.getElementById('tab-' + name).classList.add('active');
-  if (name === 'map') { setTimeout(renderBubbleMap, 50); }
-  if (name === 'gaps') { setTimeout(renderGapAnalysis, 50); }
+  if (name === 'map') {
+    document.getElementById('panel-map').setAttribute('aria-busy', 'true');
+    setTimeout(function() { renderBubbleMap(); document.getElementById('panel-map').removeAttribute('aria-busy'); }, 50);
+  }
+  if (name === 'gaps') {
+    document.getElementById('panel-gaps').setAttribute('aria-busy', 'true');
+    setTimeout(function() { renderGapAnalysis(); document.getElementById('panel-gaps').removeAttribute('aria-busy'); }, 50);
+  }
   if (name === 'export') { renderExportSummary(); }
 }
 
@@ -1409,7 +1415,7 @@ document.getElementById('bubbleCanvas').addEventListener('mouseleave', function(
 });
 
 // ======================== GAP ANALYSIS ========================
-function renderGapAnalysis() {
+function computeGapStats() {
   var ni = appState.interventions.length;
   var no = appState.outcomes.length;
   var total = ni * no;
@@ -1432,6 +1438,14 @@ function renderGapAnalysis() {
       }
     }
   }
+  return { ni: ni, no: no, total: total, filled: filled, gaps: gaps, totalStudies: totalStudies, certCounts: certCounts, dirCounts: dirCounts, gapList: gapList };
+}
+
+function renderGapAnalysis() {
+  var stats = computeGapStats();
+  var ni = stats.ni, no = stats.no, total = stats.total;
+  var filled = stats.filled, gaps = stats.gaps, totalStudies = stats.totalStudies;
+  var certCounts = stats.certCounts, dirCounts = stats.dirCounts, gapList = stats.gapList;
 
   // Stats
   document.getElementById('statTotal').textContent = total;
@@ -1637,7 +1651,8 @@ function drawHeatmap() {
     }
   }
   if (maxK === 0) maxK = 1;
-  var cellW = 80, cellH = 52;
+  var zoom = appState.zoom || 1.0;
+  var cellW = Math.round(80 * zoom), cellH = Math.round(52 * zoom);
   var padL = 160, padT = 70, padR = 20, padB = 20;
   var W = padL + no * cellW + padR;
   var H = padT + ni * cellH + padB;
@@ -1716,7 +1731,7 @@ function exportBubblePNG() {
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  // toDataURL returns data: URI, not blob URL — no revokeObjectURL needed
 }
 
 function exportHeatmapPNG() {
@@ -1729,7 +1744,7 @@ function exportHeatmapPNG() {
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  // toDataURL returns data: URI, not blob URL — no revokeObjectURL needed
 }
 
 function buildSummaryText() {
@@ -1821,25 +1836,12 @@ function exportCSV() {
 }
 
 function exportGapReport() {
-  var ni = appState.interventions.length;
-  var no = appState.outcomes.length;
-  var total = ni * no;
-  var filled = 0, totalStudies = 0, gaps = 0;
-  var certCounts = { 'High': 0, 'Moderate': 0, 'Low': 0, 'Very Low': 0, 'Not assessed': 0 };
-  var gapList = [];
-  for (var i = 0; i < ni; i++) {
-    for (var j = 0; j < no; j++) {
-      var cell = getCellData(i, j);
-      if (cell.k > 0) {
-        filled++;
-        totalStudies += cell.k;
-        certCounts[cell.certainty] = (certCounts[cell.certainty] || 0) + 1;
-      } else {
-        gaps++;
-        gapList.push({ intv: appState.interventions[i], outc: appState.outcomes[j] });
-      }
-    }
-  }
+  var stats = computeGapStats();
+  var total = stats.total, filled = stats.filled, gaps = stats.gaps, totalStudies = stats.totalStudies;
+  var certCounts = stats.certCounts;
+  var gapList = stats.gapList.map(function(g) {
+    return { intv: appState.interventions[g.iIdx], outc: appState.outcomes[g.oIdx] };
+  });
   var gapRows = gapList.map(function(g, idx) {
     return '<tr><td>' + (idx + 1) + '</td><td>' + escHtml(g.intv) + '</td><td>' + escHtml(g.outc) + '</td></tr>';
   }).join('');
@@ -2025,5 +2027,4 @@ window.addEventListener('resize', function() {
 });
 </script>
 </body>
-</html>
 </html>

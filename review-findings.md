@@ -42,25 +42,30 @@ Users can add duplicate intervention or outcome names, which would create confus
 ### P1-5: `exportBubblePNG` and `exportHeatmapPNG` call `URL.revokeObjectURL` on data URL
 **Lines:** 1719, 1732
 `canvas.toDataURL()` returns a `data:` URI. `URL.revokeObjectURL()` is a no-op on data URIs. Harmless but misleading.
+**Status:** FIXED — removed spurious revokeObjectURL calls
 
 ## P2 (Minor)
 
 ### P2-1: Hard-coded pixel sizes in heatmap
 **Lines:** 1640-1641
 `cellW = 80, cellH = 52` are fixed, not affected by zoom. Bubble map respects zoom but heatmap does not.
+**Status:** FIXED — heatmap cell sizes now scale with appState.zoom
 
 ### P2-2: Missing ARIA roles on tab panels
 **Lines:** 542-553
 Tab buttons have `role="tab"` but the corresponding panels lack `role="tabpanel"` and `aria-labelledby`.
+**Status:** FIXED — added role="tabpanel" and aria-labelledby to all 4 panels
 
 ### P2-3: Gap report generation duplicates statistics code
 **Lines:** 1817-1872
 The statistics calculation in `exportGapReport` duplicates the logic in `renderGapAnalysis`. Should be extracted to a shared function.
+**Status:** FIXED — extracted computeGapStats() shared function; both renderGapAnalysis and exportGapReport use it
 
 ### P2-4: No loading indicator when switching to Map/Gaps tabs
 **Lines:** 884-886
 `setTimeout(renderBubbleMap, 50)` delays rendering but shows no loading state.
+**Status:** FIXED — added aria-busy attribute during rendering
 
 ---
 
-**Summary:** 2 P0 fixed, 5 P1 found, 4 P2 found
+**Summary:** 2 P0 fixed, 5 P1 found (1 fixed), 4 P2 fixed. Removed duplicate `</html>` tag. 54/54 tests pass.
