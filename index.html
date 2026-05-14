@@ -563,7 +563,7 @@ input[type="checkbox"] { accent-color: var(--accent); }
         <div class="panel-title">&#127755; Interventions (Rows)</div>
         <div id="interventionList"></div>
         <div class="add-row">
-          <input type="text" id="newIntervention" placeholder="Add intervention..." onkeydown="if(event.key==='Enter')addIntervention()">
+          <input type="text" id="newIntervention" aria-label="New intervention name" placeholder="Add intervention..." onkeydown="if(event.key==='Enter')addIntervention()">
           <button class="btn btn-sm btn-primary" onclick="addIntervention()">+ Add</button>
         </div>
       </div>
@@ -572,7 +572,7 @@ input[type="checkbox"] { accent-color: var(--accent); }
         <div class="panel-title">&#127919; Outcomes (Columns)</div>
         <div id="outcomeList"></div>
         <div class="add-row">
-          <input type="text" id="newOutcome" placeholder="Add outcome..." onkeydown="if(event.key==='Enter')addOutcome()">
+          <input type="text" id="newOutcome" aria-label="New outcome name" placeholder="Add outcome..." onkeydown="if(event.key==='Enter')addOutcome()">
           <button class="btn btn-sm btn-primary" onclick="addOutcome()">+ Add</button>
         </div>
       </div>
@@ -585,7 +585,7 @@ input[type="checkbox"] { accent-color: var(--accent); }
           Certainty: High/Moderate/Low/Very Low<br>
           Direction: Beneficial/Harmful/No effect/Mixed</span>
         </div>
-        <textarea class="csv-area mt-12" id="csvInput" placeholder="Drug A, Mortality, 5, High, Beneficial, RR 0.72 (0.65-0.80)&#10;Drug A, MI, 3, Moderate, Beneficial, RR 0.81 (0.70-0.94)&#10;Drug B, Mortality, 1, Low, Harmful, RR 1.15 (0.95-1.40)"></textarea>
+        <textarea class="csv-area mt-12" id="csvInput" aria-label="CSV evidence map data" placeholder="Drug A, Mortality, 5, High, Beneficial, RR 0.72 (0.65-0.80)&#10;Drug A, MI, 3, Moderate, Beneficial, RR 0.81 (0.70-0.94)&#10;Drug B, Mortality, 1, Low, Harmful, RR 1.15 (0.95-1.40)"></textarea>
         <div class="row mt-12">
           <button class="btn btn-sm btn-primary" onclick="importCSV()">&#8679; Import CSV</button>
           <button class="btn btn-sm" onclick="clearCSV()">&#10006; Clear</button>
@@ -617,16 +617,16 @@ input[type="checkbox"] { accent-color: var(--accent); }
 <div class="tab-panel" id="panel-map" role="tabpanel" aria-labelledby="tab-map">
   <div class="map-controls">
     <div class="filter-group">
-      <label>Min studies:</label>
+      <label for="filterMinK">Min studies:</label>
       <input type="number" id="filterMinK" value="0" min="0" max="100" style="width:60px" onchange="renderBubbleMap()">
     </div>
     <div class="filter-group">
       <label>Show:</label>
-      <label><input type="checkbox" id="showHigh" checked onchange="renderBubbleMap()"> High</label>
-      <label><input type="checkbox" id="showMod" checked onchange="renderBubbleMap()"> Moderate</label>
-      <label><input type="checkbox" id="showLow" checked onchange="renderBubbleMap()"> Low</label>
-      <label><input type="checkbox" id="showVLow" checked onchange="renderBubbleMap()"> Very Low</label>
-      <label><input type="checkbox" id="showNA" checked onchange="renderBubbleMap()"> Not assessed</label>
+      <label><input type="checkbox" id="showHigh" aria-label="Show high certainty cells" checked onchange="renderBubbleMap()"> High</label>
+      <label><input type="checkbox" id="showMod" aria-label="Show moderate certainty cells" checked onchange="renderBubbleMap()"> Moderate</label>
+      <label><input type="checkbox" id="showLow" aria-label="Show low certainty cells" checked onchange="renderBubbleMap()"> Low</label>
+      <label><input type="checkbox" id="showVLow" aria-label="Show very low certainty cells" checked onchange="renderBubbleMap()"> Very Low</label>
+      <label><input type="checkbox" id="showNA" aria-label="Show not assessed cells" checked onchange="renderBubbleMap()"> Not assessed</label>
     </div>
     <div class="zoom-controls">
       <button onclick="adjustZoom(-0.1)">&#8722;</button>
@@ -1095,19 +1095,19 @@ function renderCellTable() {
       var k = cellKey(iIdx, oIdx);
       html += '<td><div class="cell-inner">' +
         '<label>k (studies)</label>' +
-        '<input type="number" min="0" value="' + escHtml(kVal) + '" ' +
+        '<input type="number" min="0" aria-label="Study count for ' + escHtml(intv) + ' and ' + escHtml(outc) + '" value="' + escHtml(kVal) + '" ' +
           'onchange="updateCell(' + iIdx + ',' + oIdx + ',\'k\',this.value)">' +
         '<label>Effect (optional)</label>' +
-        '<input type="text" placeholder="RR 0.80 (0.70-0.92)" value="' + escHtml(cell.effect) + '" ' +
+        '<input type="text" aria-label="Effect estimate for ' + escHtml(intv) + ' and ' + escHtml(outc) + '" placeholder="RR 0.80 (0.70-0.92)" value="' + escHtml(cell.effect) + '" ' +
           'onchange="updateCell(' + iIdx + ',' + oIdx + ',\'effect\',this.value)">' +
         '<label>GRADE certainty</label>' +
-        '<select onchange="updateCell(' + iIdx + ',' + oIdx + ',\'certainty\',this.value)">';
+        '<select aria-label="GRADE certainty for ' + escHtml(intv) + ' and ' + escHtml(outc) + '" onchange="updateCell(' + iIdx + ',' + oIdx + ',\'certainty\',this.value)">';
       certaintyOpts.forEach(function(opt) {
         html += '<option value="' + escHtml(opt) + '"' + (cell.certainty === opt ? ' selected' : '') + '>' + escHtml(opt) + '</option>';
       });
       html += '</select>' +
         '<label>Direction</label>' +
-        '<select onchange="updateCell(' + iIdx + ',' + oIdx + ',\'direction\',this.value)">';
+        '<select aria-label="Effect direction for ' + escHtml(intv) + ' and ' + escHtml(outc) + '" onchange="updateCell(' + iIdx + ',' + oIdx + ',\'direction\',this.value)">';
       directionOpts.forEach(function(opt) {
         html += '<option value="' + escHtml(opt) + '"' + (cell.direction === opt ? ' selected' : '') + '>' + escHtml(opt) + '</option>';
       });
